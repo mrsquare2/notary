@@ -82,8 +82,9 @@ export function publicSession(session, state) {
         id: q.id,
         topic: q.topic,
         topicName: state.topicName[q.topic],
+        difficulty: q.difficulty,
         text: q.question,
-        options: order.map((i) => ({ id: i, text: q.options[i] })),
+        options: order.map((i) => ({ id: i, text: q.options[i].text })),
         selected: session.answers[qid] ?? null,
       };
       if (reveal && qid in session.answers) Object.assign(out, feedback(q, session.answers[qid]));
@@ -93,7 +94,14 @@ export function publicSession(session, state) {
 }
 
 export function feedback(q, selected) {
-  return { correct: selected === q.answer, correctOptionId: q.answer, explanation: q.explanation, source: q.source ?? null };
+  return {
+    correct: selected === q.answer,
+    correctOptionId: q.answer,
+    explanation: q.explanation,
+    // Indexed by option id: why each option is right or wrong.
+    optionExplanations: q.options.map((o) => o.why),
+    source: q.source ?? null,
+  };
 }
 
 export function isExpired(session, now = Date.now()) {
@@ -136,12 +144,14 @@ export function gradeSession(session, state) {
       id: q.id,
       topic: q.topic,
       topicName: state.topicName[q.topic],
+      difficulty: q.difficulty,
       text: q.question,
-      options: order.map((i) => ({ id: i, text: q.options[i] })),
+      options: order.map((i) => ({ id: i, text: q.options[i].text })),
       selected,
       correctOptionId: q.answer,
       isCorrect: ok,
       explanation: q.explanation,
+      optionExplanations: q.options.map((o) => o.why),
       source: q.source ?? null,
     };
   });

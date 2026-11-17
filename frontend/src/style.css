@@ -107,4 +107,11 @@ h1, h2, h3 { line-height: 1.2; margin: 0; letter-spacing: -0.01em; }
 }
 .explain .source { font-size: 0.8rem; color: var(--muted); margin-top: 6px; }
 
+/* Per-option "why this is right/wrong", shown once an answer is revealed. */
+.option .why { display: block; margin-top: 4px; font-size: 0.82rem; line-height: 1.4; color: var(--muted); font-weight: 400; }
+
+.difficulty { margin-left: 8px; padding: 1px 8px; border-radius: 999px; font-size: 0.72rem; font-weight: 600; text-transform: capitalize; background: #eef2f7; color: #475569; }
+.difficulty.easy { background: var(--ok-bg); color: var(--ok); }
+.difficulty.hard { background: var(--bad-bg); color: var(--bad); }
+
 .disclaimer { font-size: 0.8rem; color: var(--muted); }

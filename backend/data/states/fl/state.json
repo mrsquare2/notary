@@ -1,0 +1,20 @@
+{
+  "code": "FL",
+  "name": "Florida",
+  "authority": "Florida Department of State, Notary Section (appointments by the Governor)",
+  "notes": "Florida does not give a state notary exam; first-time applicants complete a three-hour education course. This mock exam is a self-check on the same law: 40 questions in one hour, 70% to pass.",
+  "disclaimer": "Study aid only, not legal advice. Questions are based on Chapter 117, Florida Statutes, and the Governor's Reference Manual for Notaries. Check the Department of State's current notary publications before relying on any rule.",
+  "mock": { "questions": 40, "minutes": 60, "passPercent": 70 },
+  "topics": [
+    { "id": "commission", "name": "Commission & Qualifications", "description": "Eligibility, the three-hour course, bond, term and keeping the commission current." },
+    { "id": "identification", "name": "Identification", "description": "Personal knowledge, acceptable IDs and credible witnesses under §117.05(5)." },
+    { "id": "acknowledgments", "name": "Acknowledgments", "description": "Taking acknowledgments and the statutory certificate forms." },
+    { "id": "jurats", "name": "Oaths & Jurats", "description": "Administering oaths and affirmations, affidavits and jurat forms." },
+    { "id": "fees", "name": "Fees", "description": "The $10 limit, marriage and online fees, and acts that must be free." },
+    { "id": "recordkeeping", "name": "Journal & Records", "description": "Journals for paper and online notarizations and record retention." },
+    { "id": "seal", "name": "Seal & Certificates", "description": "Seal requirements and completing notarial certificates." },
+    { "id": "conduct", "name": "Prohibited Acts & Penalties", "description": "Family members, legal advice, advertising, blank documents and penalties." },
+    { "id": "special", "name": "Special Powers & Situations", "description": "Marriages, attested photocopies, signature by mark, blind signers and VIN checks." },
+    { "id": "online", "name": "Online Notarization", "description": "Registering as an online notary, RON service providers, identity proofing and recordings." }
+  ]
+}

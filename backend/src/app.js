@@ -5,10 +5,18 @@ import { stateSummary } from './bank.js';
 import {
   PRACTICE_SIZES, createSession, publicSession, recordAnswer, gradeSession, resultSummary, HttpError,
 } from './quiz.js';
+import { rateLimit } from './ratelimit.js';
 
 const CLIENT_ID = /^[A-Za-z0-9-]{8,64}$/;
 
-export function createApp({ states, store, staticDir }) {
+// Per IP. A full 50-question mock is ~55 requests, so `api` leaves plenty of
+// room for real learners while stopping scripted hammering.
+export const DEFAULT_LIMITS = {
+  api: { windowMs: 5 * 60 * 1000, max: 300 },
+  newSession: { windowMs: 10 * 60 * 1000, max: 30, message: 'Too many tests started. Please wait a few minutes.' },
+};
+
+export function createApp({ states, store, staticDir, limits = DEFAULT_LIMITS }) {
   const app = express();
   app.disable('x-powered-by');
   app.use(express.json({ limit: '50kb' }));
@@ -19,6 +27,11 @@ export function createApp({ states, store, staticDir }) {
   });
 
   const api = express.Router();
+
+  // Registered before the limiter so load-balancer health checks are never throttled.
+  api.get('/health', (req, res) => res.json({ ok: true }));
+  api.use(rateLimit(limits.api));
+  const newSessionLimit = rateLimit(limits.newSession);
 
   // Learners are anonymous: the browser keeps a random id and sends it with
   // every request, so each browser sees only its own sessions and results.
@@ -48,13 +61,11 @@ export function createApp({ states, store, staticDir }) {
     return result;
   };
 
-  api.get('/health', (req, res) => res.json({ ok: true }));
-
   api.get('/states', (req, res) => {
     res.json({ states: [...states.values()].map(stateSummary), practiceSizes: PRACTICE_SIZES });
   });
 
-  api.post('/sessions', (req, res) => {
+  api.post('/sessions', newSessionLimit, (req, res) => {
     const { state: code, mode, topics, count } = req.body ?? {};
     const state = getState(code);
     if (mode !== 'practice' && mode !== 'mock') throw new HttpError(400, 'Mode must be "practice" or "mock".');

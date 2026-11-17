@@ -1,6 +1,6 @@
 # Notary Exam Prep
 
-A web app for notary public exam practice. It starts with **Texas**, which has 159 questions across 10 topic areas, and is built so other states plug in as data.
+A web app for notary public exam practice. It covers **Texas, New York, California and Florida**, with 150+ questions per state (627 in total) at easy, medium and hard difficulty. Every answer option explains why it is right or wrong. Agents and contributors: start with [AGENTS.md](AGENTS.md) and [docs/](docs/).
 
 - **Topic-wise practice**: choose any of identification, acknowledgments, jurats/oaths, fees, recordkeeping, seal & certificates, commission, prohibited acts, special situations and online notarization. You get instant feedback with an explanation and legal citation for each question.
 - **Timed mock exam**: 50 questions drawn in proportion to each topic, 60 minutes, 70% to pass. It has a question navigator, flag-for-review, keyboard shortcuts and auto-submit when time runs out. The timer is enforced by the server.
@@ -16,12 +16,15 @@ Requires Node 20+.
 ```bash
 npm install          # root: installs concurrently
 npm run install:all  # backend + frontend dependencies
-npm run dev          # API on :4100, web app on http://localhost:5180
+npm run db:seed      # copy the JSON question bank into the local SQLite file (backend/data/notary.db)
+npm run dev          # API on :4100, web app on http://localhost:5180 (seeds first)
 ```
 
-Production: `npm run build`, then `npm start`. Express serves the built app and the API on port 4100 (set `PORT` to change it).
+Production: `npm run build`, then `npm start` with `NODE_ENV=production` and `DATABASE_URL=mysql://user:pass@host:3306/dbname` (run `npm run db:seed` once against that database). Express serves the built app and the API on port 4100 (set `PORT` to change it). Behind a reverse proxy, set `TRUST_PROXY=1` so rate limits see the real client IP.
 
-Tests: `npm test`. They check bank validity, the 150+ question minimum, shuffling, mock allocation, the API flow and per-browser result isolation.
+The question bank lives in SQLite locally and MySQL in production; the JSON files under `backend/data/states/` are the seed. `sqlite3` builds a native module and is approved in `backend/package.json` → `allowScripts`.
+
+Tests: `npm test`. They check bank validity, the 150+ per-state minimum, difficulty mix, per-option explanations, the SQLite seed/load round trip, shuffling, mock allocation, the API flow, per-browser result isolation and rate limiting.
 
 ## Layout
 
@@ -30,7 +33,10 @@ backend/
   data/states/<code>/state.json   state name, topics, mock-exam settings, disclaimer
   data/states/<code>/<topic>.json questions for that topic
   data/runtime/                   sessions.json + results.json (created at runtime, git-ignored)
-  src/bank.js     loads and validates question banks (fails fast on bad data)
+  src/db.js       SQLite (local) / MySQL (production) behind one small interface
+  src/bank.js     validates the seed, writes it to the DB, loads it back (fails fast on bad data)
+  src/seed.js     npm run db:seed
+  src/ratelimit.js per-IP rate limiting
   src/quiz.js     random selection, shuffling, per-topic allocation, grading
   src/store.js    JSON-file persistence (atomic writes)
   src/app.js      REST API (+ serves frontend/dist in production)
@@ -45,32 +51,28 @@ frontend/src/
 {
   "id": "tx-fee-01",
   "topic": "fees",
+  "difficulty": "easy",
   "question": "What is the maximum fee for ...?",
-  "options": ["$10", "$6", "$5", "$25"],
+  "options": [
+    { "text": "$10", "why": "Correct. §406.024 caps it at $10 for the first signature." },
+    { "text": "$6", "why": "Wrong. $6 is an outdated figure; the current cap is $10." }
+  ],
   "answer": 0,
   "explanation": "Why the answer is right.",
   "source": "Tex. Gov't Code §406.024"
 }
 ```
 
-`answer` is the index of the correct option. Options are shuffled when served, so the order in the file doesn't matter. Avoid "all/none of the above" options; the validator rejects them because they break under shuffling.
+`answer` is the index of the correct option. `difficulty` is `easy`, `medium` or `hard`. Each option's `why` must start with "Correct." or "Wrong." and give the reason. Options are shuffled when served, so the order in the file doesn't matter. Avoid "all/none of the above" options; the validator rejects them because they break under shuffling.
 
-## Adding a state (NY, CA, FL, ...)
+## Adding a state
 
-1. Create `backend/data/states/ny/state.json` with `code`, `name`, `authority`, `mock` (`questions`, `minutes`, `passPercent`), `topics` and `disclaimer`.
+1. Create `backend/data/states/<code>/state.json` with `code`, `name`, `authority`, `mock` (`questions`, `minutes`, `passPercent`), `topics`, `notes` and `disclaimer`.
 2. Add one `<topic-id>.json` file per topic.
-3. Restart the server. The state appears in the picker automatically, and the bank is validated on startup.
-
-Suggested mock settings, based on the real exams (check them against current official sources):
-
-| State | Real exam | Source material |
-|---|---|---|
-| New York | 40 questions, 1 hour, 70% | "Notary Public License Law" (Department of State) |
-| California | 45 questions, 1 hour, 70% | Notary Public Handbook (Secretary of State) |
-| Florida | No state exam; a 3-hour education course is required | Florida Notary Law (ch. 117 F.S.) and the Governor's Reference Manual |
+3. Run `npm run db:seed` and restart. The state appears in the picker automatically.
 
 ## Notes
 
 - Learners are anonymous. Each browser gets a random id, so history is per-browser. Add accounts if you need cross-device history.
-- JSON storage suits a single server process. For several instances, move `store.js` to SQLite or MySQL; it is the only file that touches storage.
-- The content is a study aid, not legal advice. Texas questions cite Gov't Code ch. 406, CPRC ch. 121 and 1 TAC ch. 87. Have a subject-matter expert review them against current Secretary of State publications before launch.
+- Sessions and results are still JSON files (`store.js`). Moving them into MySQL is planned (see docs/DATABASE.md).
+- The content is a study aid, not legal advice. Every question cites its statute or official handbook. Have a subject-matter expert review them against current Secretary of State publications before launch.

@@ -1,30 +1,82 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { loadStates } from '../src/bank.js';
+import { readSeedStates, seedStates, loadStates } from '../src/bank.js';
+import { openDb } from '../src/db.js';
 import { Store } from '../src/store.js';
-import { createApp } from '../src/app.js';
+import { createApp, DEFAULT_LIMITS } from '../src/app.js';
 
-const states = loadStates();
+// Same path as production: JSON seed -> database -> in-memory bank.
+const db = await openDb(':memory:');
+await seedStates(db, readSeedStates());
+const states = await loadStates(db);
+await db.close();
+
 let server;
 let base;
+let limited; // a second app with tiny limits, for the 429 tests
 const CLIENT = 'test-client-0001';
 
-before(async () => {
-  const app = createApp({ states, store: new Store(null) });
-  await new Promise((resolve) => { server = app.listen(0, resolve); });
-  base = `http://127.0.0.1:${server.address().port}/api`;
-});
-after(() => server.close());
+const listen = (app) => new Promise((resolve) => { const s = app.listen(0, () => resolve(s)); });
+const urlOf = (s) => `http://127.0.0.1:${s.address().port}/api`;
 
-async function call(method, path, body, client = CLIENT) {
-  const res = await fetch(base + path, {
+before(async () => {
+  server = await listen(createApp({ states, store: new Store(null) }));
+  base = urlOf(server);
+  limited = await listen(createApp({
+    states,
+    store: new Store(null),
+    limits: { api: { windowMs: 60_000, max: 5 }, newSession: { windowMs: 60_000, max: 2 } },
+  }));
+});
+after(() => { server.close(); limited.close(); });
+
+async function call(method, path, body, client = CLIENT, root = base) {
+  const res = await fetch(root + path, {
     method,
     headers: { 'content-type': 'application/json', ...(client ? { 'x-client-id': client } : {}) },
     body: body ? JSON.stringify(body) : undefined,
   });
   const text = await res.text();
-  return { status: res.status, body: text ? JSON.parse(text) : null };
+  return { status: res.status, headers: res.headers, body: text ? JSON.parse(text) : null };
 }
+
+test('every state is served with its questions', async () => {
+  const { body } = await call('GET', '/states', null, null);
+  for (const code of ['TX', 'NY', 'CA', 'FL']) {
+    const s = body.states.find((x) => x.code === code);
+    assert.ok(s?.questionCount >= 150, `${code} missing or too small`);
+  }
+});
+
+test('practice feedback explains every option and mock results include them', async () => {
+  const s = (await call('POST', '/sessions', { state: 'NY', mode: 'practice', count: 10 })).body;
+  const q = s.questions[0];
+  assert.ok(['easy', 'medium', 'hard'].includes(q.difficulty));
+  assert.ok(!('optionExplanations' in q), 'explanations leaked before answering');
+  const fb = (await call('POST', `/sessions/${s.id}/answers`, { questionId: q.id, optionId: q.options[0].id })).body;
+  for (const o of q.options) assert.ok(fb.optionExplanations[o.id]?.length > 10, 'option explanation missing');
+
+  const m = (await call('POST', '/sessions', { state: 'CA', mode: 'mock' })).body;
+  const r = (await call('GET', `/results/${(await call('POST', `/sessions/${m.id}/submit`)).body.resultId}`)).body;
+  assert.ok(r.questions.every((x) => x.options.every((o) => x.optionExplanations[o.id])));
+});
+
+test('rate limit: too many requests from one IP get 429 with Retry-After', async () => {
+  const seen = [];
+  for (let i = 0; i < 6; i++) seen.push((await call('GET', '/states', null, null, urlOf(limited))).status);
+  assert.deepEqual(seen, [200, 200, 200, 200, 200, 429]);
+  const res = await call('GET', '/states', null, null, urlOf(limited));
+  assert.equal(res.status, 429);
+  assert.ok(Number(res.headers.get('retry-after')) > 0);
+  assert.match(res.body.error, /too many/i);
+  // Health checks are never throttled.
+  assert.equal((await call('GET', '/health', null, null, urlOf(limited))).status, 200);
+});
+
+test('default limits leave room for a full mock exam', () => {
+  assert.ok(DEFAULT_LIMITS.api.max >= 100);
+  assert.ok(DEFAULT_LIMITS.newSession.max >= 10);
+});
 
 test('lists states with topic counts', async () => {
   const { status, body } = await call('GET', '/states', null, null);
