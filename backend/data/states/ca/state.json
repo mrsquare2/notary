@@ -1,0 +1,19 @@
+{
+  "code": "CA",
+  "name": "California",
+  "authority": "California Secretary of State, Notary Public Section",
+  "notes": "California requires a six-hour approved course, a background check and a proctored state exam. This mock follows the exam's format: 45 multiple-choice questions in one hour, 70% to pass.",
+  "disclaimer": "Study aid only, not legal advice. Questions are based on the California Government Code §§8200–8230, Civil Code §§1181–1197 and the Secretary of State's Notary Public Handbook. Check the Secretary of State's current handbook before relying on any rule.",
+  "mock": { "questions": 45, "minutes": 60, "passPercent": 70 },
+  "topics": [
+    { "id": "commission", "name": "Commission & Qualifications", "description": "Education, exam, background check, bond, oath and keeping the commission current." },
+    { "id": "identification", "name": "Satisfactory Evidence", "description": "Identity documents and credible witnesses under Civil Code §1185." },
+    { "id": "acknowledgments", "name": "Acknowledgments", "description": "The all-purpose acknowledgment, the consumer notice and proofs of execution." },
+    { "id": "jurats", "name": "Jurats & Oaths", "description": "The California jurat form, oaths and affirmations." },
+    { "id": "fees", "name": "Fees", "description": "Maximum fees under Government Code §8211 and acts that must be free." },
+    { "id": "recordkeeping", "name": "Journal", "description": "Journal entries, thumbprints, security, copies and surrender." },
+    { "id": "seal", "name": "Official Seal", "description": "Seal elements, size, security and replacement." },
+    { "id": "conduct", "name": "Misconduct & Penalties", "description": "Conflicts of interest, immigration rules, advertising, civil penalties and discipline." },
+    { "id": "special", "name": "Special Situations", "description": "Certified copies of powers of attorney, signature by mark, apostilles and more." }
+  ]
+}

@@ -158,6 +158,7 @@ function optClass(q, opt) {
           <div class="row" style="margin-bottom: 8px">
             <span class="num">{{ q.n }}</span>
             <span class="eyebrow">{{ q.topicName }}</span>
+            <span v-if="q.difficulty" class="difficulty" :class="q.difficulty">{{ q.difficulty }}</span>
             <span class="spacer" />
             <Tag v-if="q.selected === null" value="Unanswered" severity="secondary" />
             <Tag v-else-if="q.isCorrect" value="Correct" severity="success" icon="pi pi-check" />
@@ -167,7 +168,10 @@ function optClass(q, opt) {
           <div class="options">
             <div v-for="(opt, i) in q.options" :key="opt.id" class="option" :class="optClass(q, opt)">
               <span class="letter">{{ LETTERS[i] }}</span>
-              <span class="text">{{ opt.text }}</span>
+              <span class="text">
+                {{ opt.text }}
+                <small v-if="q.optionExplanations" class="why">{{ q.optionExplanations[opt.id] }}</small>
+              </span>
               <span class="mark small">
                 <template v-if="opt.id === q.correctOptionId">Correct answer</template>
                 <template v-else-if="opt.id === q.selected">Your answer</template>

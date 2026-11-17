@@ -1,0 +1,21 @@
+{
+  "code": "NY",
+  "name": "New York",
+  "authority": "New York Department of State, Division of Licensing Services",
+  "notes": "New York requires most applicants to pass a state notary exam (attorneys admitted in New York are exempt). This mock follows the exam's format: 40 multiple-choice questions in one hour, 70% to pass.",
+  "disclaimer": "Study aid only, not legal advice. Questions are based on New York Executive Law §§130–142-a, Real Property Law §§298–309-b, 19 NYCRR Part 182 and the Department of State's Notary Public License Law booklet. Check the Department of State's current publications before relying on any rule.",
+  "mock": { "questions": 40, "minutes": 60, "passPercent": 70 },
+  "topics": [
+    { "id": "commission", "name": "Commission & Qualifications", "description": "Eligibility, the exam, term, filing with the county clerk and keeping the commission current." },
+    { "id": "identification", "name": "Identification", "description": "Satisfactory evidence of identity and personal appearance." },
+    { "id": "acknowledgments", "name": "Acknowledgments & Proofs", "description": "Real Property Law acknowledgments, proofs by subscribing witness and certificate forms." },
+    { "id": "jurats", "name": "Oaths, Affidavits & Depositions", "description": "Administering oaths and affirmations, jurats and depositions." },
+    { "id": "fees", "name": "Fees", "description": "Statutory fees under Executive Law §136." },
+    { "id": "recordkeeping", "name": "Records", "description": "Keeping records of notarial acts, including electronic notarization records." },
+    { "id": "seal", "name": "Signature, Stamp & Authentication", "description": "Executive Law §137 signing rules, certificates of official character and apostilles." },
+    { "id": "conduct", "name": "Prohibited Acts & Misconduct", "description": "Legal advice, advertising, conflicts of interest, penalties and removal." },
+    { "id": "terms", "name": "Legal Terms", "description": "Definitions from the Department of State's notary glossary." },
+    { "id": "special", "name": "Special Situations", "description": "Protests, copies, marriages, wills and other unusual requests." },
+    { "id": "online", "name": "Electronic Notarization", "description": "Registering as an electronic notary, communication technology and identity proofing." }
+  ]
+}

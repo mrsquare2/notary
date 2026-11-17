@@ -1,5 +1,6 @@
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { openDb } from './db.js';
 import { loadStates } from './bank.js';
 import { Store } from './store.js';
 import { createApp } from './app.js';
@@ -7,11 +8,25 @@ import { createApp } from './app.js';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const port = Number(process.env.PORT) || 4100;
 
-const states = loadStates();
+if (process.env.NODE_ENV === 'production' && !/^mysql:\/\//i.test(process.env.DATABASE_URL ?? '')) {
+  console.error('Production needs DATABASE_URL=mysql://user:pass@host:3306/dbname');
+  process.exit(1);
+}
+
+// The bank is read once at startup; re-seed and restart to pick up changes.
+const db = await openDb();
+const states = await loadStates(db).finally(() => db.close());
+if (!states.size) {
+  console.error(`The question bank in ${db.dialect} is empty. Run \`npm run db:seed\` first.`);
+  process.exit(1);
+}
+
 const store = new Store(process.env.DATA_DIR || join(root, 'data', 'runtime'));
 const app = createApp({ states, store, staticDir: join(root, '..', 'frontend', 'dist') });
+// Behind a reverse proxy, set TRUST_PROXY (e.g. 1) so rate limits key on the real client IP.
+if (process.env.TRUST_PROXY) app.set('trust proxy', /^\d+$/.test(process.env.TRUST_PROXY) ? Number(process.env.TRUST_PROXY) : process.env.TRUST_PROXY);
 
 app.listen(port, () => {
   const summary = [...states.values()].map((s) => `${s.code} (${s.questions.length} questions)`).join(', ');
-  console.log(`Notary exam API on http://localhost:${port} — banks: ${summary || 'none'}`);
+  console.log(`Notary exam API on http://localhost:${port} (${db.dialect}) — banks: ${summary}`);
 });

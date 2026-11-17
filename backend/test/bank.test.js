@@ -1,33 +1,96 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { loadStates } from '../src/bank.js';
+import { readSeedStates, seedStates, loadStates, validateState, DIFFICULTIES } from '../src/bank.js';
+import { openDb } from '../src/db.js';
 import { shuffle, allocateByTopic } from '../src/quiz.js';
 
-const states = loadStates();
+const seed = readSeedStates(); // throws if any bank fails validation
+const states = new Map(seed.map((s) => [s.code, s]));
 const tx = states.get('TX');
 
-test('Texas bank loads and passes validation', () => {
-  assert.ok(tx, 'TX bank should load');
+test('TX, NY, CA and FL banks load and pass validation', () => {
+  for (const code of ['TX', 'NY', 'CA', 'FL']) assert.ok(states.has(code), `${code} bank missing`);
 });
 
-test('Texas bank has at least 150 questions', () => {
-  assert.ok(tx.questions.length >= 150, `only ${tx.questions.length} questions`);
+test('every state has at least 150 questions, 600+ in total', () => {
+  for (const s of seed) assert.ok(s.questions.length >= 150, `${s.code} has only ${s.questions.length} questions`);
+  assert.ok(seed.reduce((n, s) => n + s.questions.length, 0) >= 600);
 });
 
-test('required practice areas exist and are populated', () => {
-  for (const id of ['identification', 'acknowledgments', 'jurats', 'fees', 'recordkeeping']) {
-    const n = tx.questions.filter((q) => q.topic === id).length;
-    assert.ok(n >= 10, `${id} has only ${n} questions`);
+test('core practice areas exist and are populated in every state', () => {
+  for (const s of seed) {
+    for (const id of ['identification', 'acknowledgments', 'jurats', 'fees', 'recordkeeping']) {
+      const n = s.questions.filter((q) => q.topic === id).length;
+      assert.ok(n >= 10, `${s.code}/${id} has only ${n} questions`);
+    }
+    for (const t of s.topics) assert.ok(s.questions.some((q) => q.topic === t.id), `${s.code}/${t.id} is empty`);
   }
 });
 
-test('every question has a source citation', () => {
-  for (const q of tx.questions) assert.ok(q.source?.trim(), `${q.id} has no source`);
+test('every state mixes easy, medium and hard questions', () => {
+  for (const s of seed) {
+    for (const d of DIFFICULTIES) {
+      const share = s.questions.filter((q) => q.difficulty === d).length / s.questions.length;
+      assert.ok(share >= 0.15, `${s.code} has only ${Math.round(share * 100)}% ${d} questions`);
+    }
+  }
 });
 
-test('question text is unique', () => {
-  const texts = tx.questions.map((q) => q.question.trim().toLowerCase());
-  assert.equal(new Set(texts).size, texts.length);
+test('every option explains why it is right or wrong', () => {
+  for (const s of seed) {
+    for (const q of s.questions) {
+      for (const [i, o] of q.options.entries()) {
+        assert.ok(o.why.trim().length >= 25, `${q.id} option ${i} has a thin explanation`);
+        const verdict = i === q.answer ? /^correct\b/i : /^wrong\b/i;
+        assert.match(o.why, verdict, `${q.id} option ${i} should start with "${i === q.answer ? 'Correct' : 'Wrong'}"`);
+      }
+    }
+  }
+});
+
+test('every question has a source citation and unique text', () => {
+  for (const s of seed) {
+    for (const q of s.questions) assert.ok(q.source?.trim(), `${q.id} has no source`);
+    const texts = s.questions.map((q) => q.question.trim().toLowerCase());
+    assert.equal(new Set(texts).size, texts.length, `${s.code} has duplicate question text`);
+  }
+});
+
+test('question ids are unique across all states (they share one table)', () => {
+  const ids = seed.flatMap((s) => s.questions.map((q) => q.id));
+  assert.equal(new Set(ids).size, ids.length);
+});
+
+test('validator rejects a missing option explanation and a bad difficulty', () => {
+  const bad = structuredClone(tx);
+  bad.questions[0].options[1].why = ' ';
+  bad.questions[1].difficulty = 'tricky';
+  const errors = validateState(bad);
+  assert.ok(errors.some((e) => e.includes('"why"')));
+  assert.ok(errors.some((e) => e.includes('difficulty')));
+});
+
+test('seeding SQLite and loading back returns the same bank', async () => {
+  const db = await openDb(':memory:');
+  try {
+    await seedStates(db, seed);
+    await seedStates(db, seed); // re-seeding replaces rows instead of duplicating them
+    const loaded = await loadStates(db);
+    assert.deepEqual([...loaded.keys()].sort(), [...states.keys()].sort());
+    for (const s of seed) {
+      const got = loaded.get(s.code);
+      assert.equal(got.questions.length, s.questions.length);
+      assert.deepEqual(got.mock, s.mock);
+      assert.deepEqual(got.topics.map((t) => t.id), s.topics.map((t) => t.id));
+      const q = s.questions[0];
+      const back = got.byId.get(q.id);
+      assert.deepEqual(back.options, q.options);
+      assert.equal(back.answer, q.answer);
+      assert.equal(back.difficulty, q.difficulty);
+    }
+  } finally {
+    await db.close();
+  }
 });
 
 test('shuffle keeps every element and does not mutate input', () => {
@@ -44,8 +107,10 @@ test('shuffle actually reorders over many runs', () => {
 });
 
 test('mock allocation hits the exact count and covers every topic', () => {
-  const picked = allocateByTopic(tx.questions, tx.mock.questions);
-  assert.equal(picked.length, tx.mock.questions);
-  assert.equal(new Set(picked.map((q) => q.id)).size, picked.length);
-  assert.equal(new Set(picked.map((q) => q.topic)).size, tx.topics.length);
+  for (const s of seed) {
+    const picked = allocateByTopic(s.questions, s.mock.questions);
+    assert.equal(picked.length, s.mock.questions);
+    assert.equal(new Set(picked.map((q) => q.id)).size, picked.length);
+    assert.equal(new Set(picked.map((q) => q.topic)).size, s.topics.length, `${s.code} mock misses a topic`);
+  }
 });

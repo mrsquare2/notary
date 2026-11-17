@@ -1,4 +1,4 @@
-﻿{
+{
   "name": "notary-exam-backend",
   "version": "1.0.0",
   "private": true,
@@ -9,10 +9,17 @@
   },
   "scripts": {
     "start": "node src/server.js",
+    "predev": "node src/seed.js",
     "dev": "node --watch src/server.js",
+    "db:seed": "node src/seed.js",
     "test": "node --test \"test/*.test.js\""
   },
   "dependencies": {
-    "express": "^5.3.0"
+    "express": "^5.3.0",
+    "mysql2": "^3.24.6",
+    "sqlite3": "^6.0.1"
+  },
+  "allowScripts": {
+    "sqlite3@6.0.1": true
   }
 }

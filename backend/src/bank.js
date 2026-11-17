@@ -1,11 +1,12 @@
-// Loads and validates every state's question bank from data/states/<code>/.
-// A state folder holds state.json (name, topics, mock-exam settings) plus one
-// <topic>.json file per topic containing an array of questions.
+// The question bank lives in the database (SQLite locally, MySQL in production).
+// data/states/<code>/ holds the reviewed seed: state.json (name, topics, mock
+// settings) plus one <topic>.json per topic. `npm run db:seed` copies it in.
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const DEFAULT_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'data', 'states');
+export const DIFFICULTIES = ['easy', 'medium', 'hard'];
 
 function readJson(path) {
   try {
@@ -24,15 +25,17 @@ export function validateState(state) {
     if (!q.id || seen.has(q.id)) errors.push(`${where}: missing or duplicate id`);
     seen.add(q.id);
     if (!topicIds.has(q.topic)) errors.push(`${where}: unknown topic "${q.topic}"`);
+    if (!DIFFICULTIES.includes(q.difficulty)) errors.push(`${where}: difficulty must be one of ${DIFFICULTIES.join(', ')}`);
     if (!q.question?.trim()) errors.push(`${where}: empty question text`);
     if (!Array.isArray(q.options) || q.options.length < 2) errors.push(`${where}: needs at least 2 options`);
     else {
-      if (new Set(q.options.map((o) => o.trim().toLowerCase())).size !== q.options.length) {
-        errors.push(`${where}: duplicate option text`);
-      }
-      if (q.options.some((o) => /\b(all|none|both) of the above\b/i.test(o))) {
+      const texts = q.options.map((o) => String(o?.text ?? '').trim().toLowerCase());
+      if (texts.some((t) => !t)) errors.push(`${where}: empty option text`);
+      if (new Set(texts).size !== texts.length) errors.push(`${where}: duplicate option text`);
+      if (texts.some((t) => /\b(all|none|both) of the above\b/.test(t))) {
         errors.push(`${where}: "of the above" options break when answers are shuffled`);
       }
+      if (q.options.some((o) => !o?.why?.trim())) errors.push(`${where}: every option needs a "why" explanation`);
     }
     if (!Number.isInteger(q.answer) || q.answer < 0 || q.answer >= (q.options?.length ?? 0)) {
       errors.push(`${where}: answer index out of range`);
@@ -46,8 +49,14 @@ export function validateState(state) {
   return errors;
 }
 
-export function loadStates(dir = DEFAULT_DIR) {
-  const states = new Map();
+function assertValid(state) {
+  const errors = validateState(state);
+  if (errors.length) throw new Error(`Invalid question bank:\n  ${errors.join('\n  ')}`);
+}
+
+// Reads and validates the JSON seed files. Returns plain state objects.
+export function readSeedStates(dir = DEFAULT_DIR) {
+  const states = [];
   if (!existsSync(dir)) return states;
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
@@ -61,10 +70,87 @@ export function loadStates(dir = DEFAULT_DIR) {
       if (existsSync(file)) questions.push(...readJson(file));
     }
     const state = { ...meta, code: meta.code.toUpperCase(), questions };
-    const errors = validateState(state);
-    if (errors.length) throw new Error(`Invalid question bank:\n  ${errors.join('\n  ')}`);
+    assertValid(state);
+    states.push(state);
+  }
+  return states;
+}
+
+// Replaces each given state's rows in one transaction, so a failed seed
+// leaves the previous bank intact.
+export async function seedStates(db, states) {
+  for (const s of states) {
+    await db.run('BEGIN');
+    try {
+      await db.run('DELETE FROM question_options WHERE question_id IN (SELECT id FROM questions WHERE state_code = ?)', [s.code]);
+      await db.run('DELETE FROM questions WHERE state_code = ?', [s.code]);
+      await db.run('DELETE FROM topics WHERE state_code = ?', [s.code]);
+      await db.run('DELETE FROM states WHERE code = ?', [s.code]);
+      await db.run(
+        'INSERT INTO states (code, name, authority, notes, disclaimer, mock_questions, mock_minutes, pass_percent) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        [s.code, s.name, s.authority ?? null, s.notes ?? null, s.disclaimer ?? null, s.mock.questions, s.mock.minutes, s.mock.passPercent],
+      );
+      for (const [i, t] of s.topics.entries()) {
+        await db.run('INSERT INTO topics (state_code, id, name, description, idx) VALUES (?, ?, ?, ?, ?)', [s.code, t.id, t.name, t.description ?? null, i]);
+      }
+      for (const q of s.questions) {
+        await db.run(
+          'INSERT INTO questions (id, state_code, topic, difficulty, question, answer, explanation, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+          [q.id, s.code, q.topic, q.difficulty, q.question, q.answer, q.explanation, q.source ?? null],
+        );
+        for (const [i, o] of q.options.entries()) {
+          await db.run('INSERT INTO question_options (question_id, idx, option_text, why) VALUES (?, ?, ?, ?)', [q.id, i, o.text, o.why]);
+        }
+      }
+      await db.run('COMMIT');
+    } catch (err) {
+      await db.run('ROLLBACK');
+      throw err;
+    }
+  }
+}
+
+// Loads every state from the database into memory (the bank is small and
+// read-only at runtime), validated and indexed for the quiz engine.
+export async function loadStates(db) {
+  const [stateRows, topicRows, questionRows, optionRows] = await Promise.all([
+    db.all('SELECT * FROM states ORDER BY code'),
+    db.all('SELECT * FROM topics ORDER BY state_code, idx'),
+    db.all('SELECT * FROM questions ORDER BY state_code, id'),
+    db.all('SELECT * FROM question_options ORDER BY question_id, idx'),
+  ]);
+  const optionsByQ = new Map();
+  for (const o of optionRows) {
+    if (!optionsByQ.has(o.question_id)) optionsByQ.set(o.question_id, []);
+    optionsByQ.get(o.question_id).push({ text: o.option_text, why: o.why });
+  }
+  const states = new Map();
+  for (const r of stateRows) {
+    const topics = topicRows.filter((t) => t.state_code === r.code)
+      .map((t) => ({ id: t.id, name: t.name, description: t.description ?? undefined }));
+    const questions = questionRows.filter((q) => q.state_code === r.code).map((q) => ({
+      id: q.id,
+      topic: q.topic,
+      difficulty: q.difficulty,
+      question: q.question,
+      options: optionsByQ.get(q.id) ?? [],
+      answer: Number(q.answer),
+      explanation: q.explanation,
+      source: q.source ?? undefined,
+    }));
+    const state = {
+      code: r.code,
+      name: r.name,
+      authority: r.authority ?? undefined,
+      notes: r.notes ?? undefined,
+      disclaimer: r.disclaimer ?? undefined,
+      mock: { questions: Number(r.mock_questions), minutes: Number(r.mock_minutes), passPercent: Number(r.pass_percent) },
+      topics,
+      questions,
+    };
+    assertValid(state);
     state.byId = new Map(questions.map((q) => [q.id, q]));
-    state.topicName = Object.fromEntries(meta.topics.map((t) => [t.id, t.name]));
+    state.topicName = Object.fromEntries(topics.map((t) => [t.id, t.name]));
     states.set(state.code, state);
   }
   return states;

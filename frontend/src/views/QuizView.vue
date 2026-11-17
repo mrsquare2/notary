@@ -224,6 +224,7 @@ function onKey(e) {
         <section class="surface card" v-if="q">
           <div class="row" style="margin-bottom: 10px">
             <span class="eyebrow">{{ q.topicName }}</span>
+            <span v-if="q.difficulty" class="difficulty" :class="q.difficulty">{{ q.difficulty }}</span>
             <span class="spacer" />
             <Button v-if="isMock" :icon="flagged.has(q.id) ? 'pi pi-flag-fill' : 'pi pi-flag'" :label="flagged.has(q.id) ? 'Flagged' : 'Flag'"
               text size="small" :severity="flagged.has(q.id) ? 'warn' : 'secondary'" @click="toggleFlag" v-tooltip.bottom="'Flag for review (F)'" />
@@ -235,7 +236,10 @@ function onKey(e) {
               role="radio" :aria-checked="opt.id === q.selected" :disabled="(!isMock && q.selected !== null) || submitting"
               @click="choose(opt.id)">
               <span class="letter">{{ LETTERS[i] }}</span>
-              <span class="text">{{ opt.text }}</span>
+              <span class="text">
+                {{ opt.text }}
+                <small v-if="!isMock && q.optionExplanations" class="why">{{ q.optionExplanations[opt.id] }}</small>
+              </span>
               <span class="mark" v-if="!isMock && q.correctOptionId !== undefined">
                 <i v-if="opt.id === q.correctOptionId" class="pi pi-check" style="color: var(--ok)" />
                 <i v-else-if="opt.id === q.selected" class="pi pi-times" style="color: var(--bad)" />
