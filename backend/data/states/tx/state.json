@@ -1,0 +1,20 @@
+{
+  "code": "TX",
+  "name": "Texas",
+  "authority": "Texas Secretary of State",
+  "notes": "Texas does not give a state-run notary exam. This mock exam is a self-check built on the same law new notaries must know.",
+  "disclaimer": "Study aid only, not legal advice. Questions are based on Texas Government Code ch. 406, Civil Practice & Remedies Code ch. 121, 1 Texas Administrative Code ch. 87 and Texas Secretary of State notary guidance. Check the Secretary of State's current notary publications before relying on any rule.",
+  "mock": { "questions": 50, "minutes": 60, "passPercent": 70 },
+  "topics": [
+    { "id": "commission", "name": "Commission & Qualifications", "description": "Eligibility, appointment, bond, term and changes to your commission." },
+    { "id": "identification", "name": "Identification", "description": "Personal knowledge, ID cards and credible witnesses." },
+    { "id": "acknowledgments", "name": "Acknowledgments", "description": "Taking acknowledgments and the short-form certificates." },
+    { "id": "jurats", "name": "Jurats, Oaths & Affirmations", "description": "Affidavits, jurats and administering oaths." },
+    { "id": "fees", "name": "Fees", "description": "Maximum fees under Gov't Code §406.024 and online fees." },
+    { "id": "recordkeeping", "name": "Recordkeeping", "description": "What goes in the notary record book and who can see it." },
+    { "id": "seal", "name": "Seal & Certificates", "description": "Seal requirements and completing notarial certificates." },
+    { "id": "conduct", "name": "Prohibited Acts & Liability", "description": "Legal advice, conflicts of interest, misconduct and penalties." },
+    { "id": "special", "name": "Special Situations", "description": "Signers with disabilities, certified copies, apostilles and depositions." },
+    { "id": "online", "name": "Online Notarization", "description": "Online notary commissions, identity proofing and recordings." }
+  ]
+}

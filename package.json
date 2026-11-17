@@ -1,0 +1,16 @@
+{
+  "name": "notary-exam-prep",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Notary public exam practice: topic-wise practice, timed mock exams, PDF results",
+  "scripts": {
+    "install:all": "npm --prefix backend install && npm --prefix frontend install",
+    "dev": "concurrently -n api,web -c blue,green \"npm --prefix backend run dev\" \"npm --prefix frontend run dev\"",
+    "build": "npm --prefix frontend run build",
+    "start": "npm --prefix backend start",
+    "test": "npm --prefix backend test"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.7"
+  }
+}
