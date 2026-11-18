@@ -42,6 +42,11 @@ export function validateState(state) {
       errors.push(`${where}: answer index out of range`);
     }
     if (!q.explanation?.trim()) errors.push(`${where}: missing explanation`);
+    // Every question links to the official text behind its answer.
+    if (!Array.isArray(q.refs) || !q.refs.length) errors.push(`${where}: needs at least one ref to the official source`);
+    else if (q.refs.some((r) => !r?.title?.trim() || r.title.length > 255 || !/^https:\/\/\S+$/.test(r.url ?? '') || r.url.length > 1024)) {
+      errors.push(`${where}: each ref needs a title (≤255 chars) and an https:// url`);
+    }
   }
   const { questions: mockCount, minutes, passPercent } = state.mock ?? {};
   if (!(mockCount > 0 && mockCount <= state.questions.length)) errors.push(`${state.code}: invalid mock question count`);
@@ -84,6 +89,7 @@ export async function seedStates(db, states) {
     await db.run('BEGIN');
     try {
       await db.run('DELETE FROM question_options WHERE question_id IN (SELECT id FROM questions WHERE state_code = ?)', [s.code]);
+      await db.run('DELETE FROM question_refs WHERE question_id IN (SELECT id FROM questions WHERE state_code = ?)', [s.code]);
       await db.run('DELETE FROM questions WHERE state_code = ?', [s.code]);
       await db.run('DELETE FROM topics WHERE state_code = ?', [s.code]);
       await db.run('DELETE FROM states WHERE code = ?', [s.code]);
@@ -101,6 +107,9 @@ export async function seedStates(db, states) {
         );
         for (const [i, o] of q.options.entries()) {
           await db.run('INSERT INTO question_options (question_id, idx, option_text, why) VALUES (?, ?, ?, ?)', [q.id, i, o.text, o.why]);
+        }
+        for (const [i, r] of (q.refs ?? []).entries()) {
+          await db.run('INSERT INTO question_refs (question_id, idx, title, url) VALUES (?, ?, ?, ?)', [q.id, i, r.title, r.url]);
         }
       }
       await db.run('COMMIT');
@@ -124,16 +133,22 @@ export async function seedMissingStates(db, states) {
 // Loads every state from the database into memory (the bank is small and
 // read-only at runtime), validated and indexed for the quiz engine.
 export async function loadStates(db) {
-  const [stateRows, topicRows, questionRows, optionRows] = await Promise.all([
+  const [stateRows, topicRows, questionRows, optionRows, refRows] = await Promise.all([
     db.all('SELECT * FROM states ORDER BY code'),
     db.all('SELECT * FROM topics ORDER BY state_code, idx'),
     db.all('SELECT * FROM questions ORDER BY state_code, id'),
     db.all('SELECT * FROM question_options ORDER BY question_id, idx'),
+    db.all('SELECT * FROM question_refs ORDER BY question_id, idx'),
   ]);
   const optionsByQ = new Map();
   for (const o of optionRows) {
     if (!optionsByQ.has(o.question_id)) optionsByQ.set(o.question_id, []);
     optionsByQ.get(o.question_id).push({ text: o.option_text, why: o.why });
+  }
+  const refsByQ = new Map();
+  for (const r of refRows) {
+    if (!refsByQ.has(r.question_id)) refsByQ.set(r.question_id, []);
+    refsByQ.get(r.question_id).push({ title: r.title, url: r.url });
   }
   const states = new Map();
   for (const r of stateRows) {
@@ -148,6 +163,7 @@ export async function loadStates(db) {
       answer: Number(q.answer),
       explanation: q.explanation,
       source: q.source ?? undefined,
+      refs: refsByQ.get(q.id),
     }));
     const state = {
       code: r.code,

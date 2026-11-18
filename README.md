@@ -34,6 +34,7 @@ docs/                             PRD, architecture, database, design system, se
 backend/
   data/states/<code>/state.json   state name, topics, mock-exam settings, notes, disclaimer
   data/states/<code>/<topic>.json questions for that topic (the seed for the database)
+  data/content-review.md          open content issues found against the official sources (owner review)
   data/notary.db                  local SQLite bank (created by db:seed, git-ignored)
   data/runtime/                   sessions.json + results.json (created at runtime, git-ignored)
   src/db.js        SQLite (local) / MySQL (production) behind one small interface
@@ -81,7 +82,7 @@ frontend/
 ## Adding a state
 
 1. Create `backend/data/states/<code>/state.json` with `code`, `name`, `authority`, `mock` (`questions`, `minutes`, `passPercent`), `topics`, `notes` and `disclaimer`.
-2. Add one `<topic-id>.json` file per topic.
+2. Add one `<topic-id>.json` file per topic. Every question needs a `source` citation and at least one `refs` entry (`title` + `https://` link) to the official text that supports its answer.
 3. Run `npm run db:seed` and restart. The state appears in the picker automatically.
 
 ## Notes

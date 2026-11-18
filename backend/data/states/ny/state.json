@@ -2,7 +2,7 @@
   "code": "NY",
   "name": "New York",
   "authority": "New York Department of State, Division of Licensing Services",
-  "notes": "New York requires most applicants to pass a state notary exam (attorneys admitted in New York are exempt). This mock follows the exam's format: 40 multiple-choice questions in one hour, 70% to pass.",
+  "notes": "New York requires most applicants to pass a state notary exam (attorneys admitted in New York are exempt). The state exam is a one-hour multiple-choice test graded pass or fail. This mock is a self-check on the same law, set at 40 questions in one hour with 70% to pass; the Department of State does not publish a question count or passing score.",
   "disclaimer": "Study aid only, not legal advice. Questions are based on New York Executive Law §§130–142-a, Real Property Law §§298–309-b, 19 NYCRR Part 182 and the Department of State's Notary Public License Law booklet. Check the Department of State's current publications before relying on any rule.",
   "mock": { "questions": 40, "minutes": 60, "passPercent": 70 },
   "topics": [

@@ -44,7 +44,14 @@ Never rename or delete a table or field without asking the owner. Column types a
 | option_text | TEXT | |
 | why | TEXT | Starts with "Correct." or "Wrong." and explains why |
 
-Validation rules (enforced in `bank.js` on seed and load): unique IDs, a known topic, a valid difficulty, at least 2 options with no duplicates, no "all/none/both of the above", every option has a `why`, and the answer index is in range.
+### `question_refs`
+| Field | Type | Notes |
+|---|---|---|
+| question_id + idx | PK | Display order |
+| title | VARCHAR(255) | e.g. `Tex. Gov't Code §406.014` or a handbook section heading |
+| url | VARCHAR(1024) | `https://` link to the official text: the state legislature's statute page or the commissioning authority's handbook. Checked by hand against the question. |
+
+Validation rules (enforced in `bank.js` on seed and load): unique IDs, a known topic, a valid difficulty, at least 2 options with no duplicates, no "all/none/both of the above", every option has a `why`, the answer index is in range, and every question has at least one ref with a title and an `https://` link to the official source.
 
 ## Tables (planned)
 

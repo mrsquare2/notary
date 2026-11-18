@@ -122,6 +122,7 @@ export function exportResultPdf(result, { includeReview = true } = {}) {
         '',
         { content: [
           `Why: ${clean(q.explanation)}${q.source ? `  [${clean(q.source)}]` : ''}`,
+          ...(q.refs ?? []).map((r) => `Read: ${clean(r.title)} ${r.url}`),
           // Per-option notes, in the order the options were shown (older results may not have them).
           ...(q.optionExplanations ? q.options.map((o, i) => `${String.fromCharCode(65 + i)}. ${clean(q.optionExplanations[o.id])}`) : []),
         ].join('\n'), colSpan: 4, styles: { fontSize: 8, textColor: GREY, fontStyle: 'italic', cellPadding: { top: 0, bottom: 8, left: 6, right: 6 } } },

@@ -254,7 +254,10 @@ function onKey(e) {
             </div>
             <div class="explain">
               {{ q.explanation }}
-              <div v-if="q.source" class="source"><i class="pi pi-book" /> {{ q.source }}</div>
+              <div v-if="q.source" class="source">
+              <i class="pi pi-book" aria-hidden="true" />
+              <span>{{ q.source }}<template v-for="r in q.refs" :key="r.url"> · <a :href="r.url" target="_blank" rel="noopener noreferrer">{{ r.title }}<span class="sr-only"> (opens in a new tab)</span></a></template></span>
+            </div>
             </div>
           </div>
 

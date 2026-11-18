@@ -101,6 +101,7 @@ export function feedback(q, selected) {
     // Indexed by option id: why each option is right or wrong.
     optionExplanations: q.options.map((o) => o.why),
     source: q.source ?? null,
+    refs: q.refs ?? [],
   };
 }
 
@@ -153,6 +154,7 @@ export function gradeSession(session, state) {
       explanation: q.explanation,
       optionExplanations: q.options.map((o) => o.why),
       source: q.source ?? null,
+      refs: q.refs ?? [],
     };
   });
   const total = questions.length;
