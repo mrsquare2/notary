@@ -2,7 +2,7 @@
   "code": "CA",
   "name": "California",
   "authority": "California Secretary of State, Notary Public Section",
-  "notes": "California requires a six-hour approved course, a background check and a proctored state exam. This mock follows the exam's format: 45 multiple-choice questions in one hour, 70% to pass.",
+  "notes": "California requires a six-hour approved course, a background check and a proctored state exam. This mock exam is a self-check on the same law, set at 45 questions in one hour with 70% to pass; the Secretary of State does not publish the exam's passing score.",
   "disclaimer": "Study aid only, not legal advice. Questions are based on the California Government Code §§8200–8230, Civil Code §§1181–1197 and the Secretary of State's Notary Public Handbook. Check the Secretary of State's current handbook before relying on any rule.",
   "mock": { "questions": 45, "minutes": 60, "passPercent": 70 },
   "topics": [
