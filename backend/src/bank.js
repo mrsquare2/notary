@@ -42,12 +42,10 @@ export function validateState(state) {
       errors.push(`${where}: answer index out of range`);
     }
     if (!q.explanation?.trim()) errors.push(`${where}: missing explanation`);
-    // shortcut: refs are optional until every state's references are added, then make them required.
-    if (q.refs !== undefined) {
-      if (!Array.isArray(q.refs) || !q.refs.length) errors.push(`${where}: refs must be a non-empty list`);
-      else if (q.refs.some((r) => !r?.title?.trim() || r.title.length > 255 || !/^https:\/\/\S+$/.test(r.url ?? '') || r.url.length > 1024)) {
-        errors.push(`${where}: each ref needs a title (≤255 chars) and an https:// url`);
-      }
+    // Every question links to the official text behind its answer.
+    if (!Array.isArray(q.refs) || !q.refs.length) errors.push(`${where}: needs at least one ref to the official source`);
+    else if (q.refs.some((r) => !r?.title?.trim() || r.title.length > 255 || !/^https:\/\/\S+$/.test(r.url ?? '') || r.url.length > 1024)) {
+      errors.push(`${where}: each ref needs a title (≤255 chars) and an https:// url`);
     }
   }
   const { questions: mockCount, minutes, passPercent } = state.mock ?? {};

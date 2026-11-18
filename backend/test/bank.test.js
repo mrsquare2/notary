@@ -48,9 +48,12 @@ test('every option explains why it is right or wrong', () => {
   }
 });
 
-test('every question has a source citation and unique text', () => {
+test('every question has a source citation, an official ref and unique text', () => {
   for (const s of seed) {
-    for (const q of s.questions) assert.ok(q.source?.trim(), `${q.id} has no source`);
+    for (const q of s.questions) {
+      assert.ok(q.source?.trim(), `${q.id} has no source`);
+      assert.ok(q.refs?.length && q.refs.every((r) => r.url.startsWith('https://')), `${q.id} has no official ref`);
+    }
     const texts = s.questions.map((q) => q.question.trim().toLowerCase());
     assert.equal(new Set(texts).size, texts.length, `${s.code} has duplicate question text`);
   }
@@ -70,8 +73,8 @@ test('validator rejects a missing option explanation and a bad difficulty', () =
   assert.ok(errors.some((e) => e.includes('difficulty')));
 });
 
-test('validator rejects refs without a title or an https link', () => {
-  for (const refs of [[], [{ title: 'x', url: 'http://example.gov' }], [{ title: ' ', url: 'https://example.gov' }]]) {
+test('validator rejects a missing ref, or a ref without a title or an https link', () => {
+  for (const refs of [undefined, [], [{ title: 'x', url: 'http://example.gov' }], [{ title: ' ', url: 'https://example.gov' }]]) {
     const bad = structuredClone(tx);
     bad.questions[0].refs = refs;
     assert.ok(validateState(bad).some((e) => e.includes('ref')), JSON.stringify(refs));
