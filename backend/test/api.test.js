@@ -130,8 +130,8 @@ test('options are shuffled across sessions', async () => {
 
 test('mock exam: timed, graded with pass/fail and topic breakdown', async () => {
   const { body: s } = await call('POST', '/sessions', { state: 'TX', mode: 'mock' });
-  assert.equal(s.questions.length, 50);
-  assert.equal(s.durationSeconds, 3600);
+  assert.equal(s.questions.length, 20);
+  assert.equal(s.durationSeconds, 1800);
   assert.ok(s.deadline);
 
   // Mock answers give no feedback.
@@ -142,11 +142,11 @@ test('mock exam: timed, graded with pass/fail and topic breakdown', async () => 
   const { status, body } = await call('POST', `/sessions/${s.id}/submit`);
   assert.equal(status, 201);
   const r = (await call('GET', `/results/${body.resultId}`)).body;
-  assert.equal(r.total, 50);
+  assert.equal(r.total, 20);
   assert.equal(r.answered, 1);
   assert.equal(r.passPercent, 70);
   assert.equal(typeof r.passed, 'boolean');
-  assert.equal(r.byTopic.reduce((n, t) => n + t.total, 0), 50);
+  assert.equal(r.byTopic.reduce((n, t) => n + t.total, 0), 20);
   assert.ok(r.questions.every((x) => Number.isInteger(x.correctOptionId)));
 
   // Submitting twice returns the same result; answering afterwards is refused.

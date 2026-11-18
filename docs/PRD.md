@@ -18,7 +18,7 @@ Note on states: New York and California give a state exam. Texas and Florida do 
 
 1. Let a learner choose a state (TX, NY, CA, FL) without signing in.
 2. **Topic practice:** pick one or more topics and 10/20/30/50 questions. After each answer, show whether it was right, a summary explanation, the legal source, and a short "why this is right/wrong" note for every option.
-3. **Timed mock exam:** questions drawn in proportion to each topic, a server-enforced timer, auto-submit at 0:00, flag-for-review, and no feedback until submit. Format per state: TX 50 q / 60 min, NY 40 q / 60 min, CA 45 q / 60 min, FL 40 q / 60 min; 70% to pass.
+3. **Timed mock exam:** questions drawn in proportion to each topic, a server-enforced timer, auto-submit at 0:00, flag-for-review, and no feedback until submit. Format per state: TX 20 q / 30 min, NY 40 q / 60 min, CA 45 q / 60 min, FL 40 q / 60 min; 70% to pass.
 4. **Results:** score, pass/fail, per-topic breakdown, full answer review with per-option explanations, PDF export and history (per browser).
 5. **Question bank:** at least 150 questions per state with easy, medium and hard questions (at least 15% of each), every option explained, every question cited.
 6. Randomize question selection and answer order on every test, and never send the answer key to the browser before it is earned.

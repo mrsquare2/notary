@@ -3,7 +3,7 @@
 A web app for notary public exam practice. It covers **Texas, New York, California and Florida**, with 150+ questions per state (627 in total) at easy, medium and hard difficulty. Every answer option explains why it is right or wrong. Agents and contributors: start with [AGENTS.md](AGENTS.md) and [docs/](docs/).
 
 - **Topic-wise practice**: choose any of identification, acknowledgments, jurats/oaths, fees, recordkeeping, seal & certificates, commission, prohibited acts, special situations and online notarization. You get instant feedback with an explanation and legal citation for each question.
-- **Timed mock exam**: 50 questions drawn in proportion to each topic, 60 minutes, 70% to pass. It has a question navigator, flag-for-review, keyboard shortcuts and auto-submit when time runs out. The timer is enforced by the server.
+- **Timed mock exam**: questions drawn in proportion to each topic, with a set length and time limit per state (Texas: 20 questions in 30 minutes), 70% to pass. It has a question navigator, flag-for-review, keyboard shortcuts and auto-submit when time runs out. The timer is enforced by the server.
 - **Randomized**: questions are drawn at random and answer options are shuffled on every test. The answer key stays on the server until the test is graded.
 - **Results**: score, pass/fail, a breakdown by topic, a full answer review, **PDF export** (full report or summary only) and test history.
 
