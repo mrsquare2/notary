@@ -73,6 +73,15 @@ test('rate limit: too many requests from one IP get 429 with Retry-After', async
   assert.equal((await call('GET', '/health', null, null, urlOf(limited))).status, 200);
 });
 
+test('responses carry security headers (no HSTS outside production)', async () => {
+  const res = await fetch(`${base}/health`);
+  assert.match(res.headers.get('content-security-policy'), /default-src 'self'.*frame-ancestors 'none'/);
+  assert.equal(res.headers.get('x-frame-options'), 'DENY');
+  assert.equal(res.headers.get('x-content-type-options'), 'nosniff');
+  assert.equal(res.headers.get('strict-transport-security'), null);
+  assert.equal(res.headers.get('access-control-allow-origin'), null, 'API must not opt into CORS');
+});
+
 test('default limits leave room for a full mock exam', () => {
   assert.ok(DEFAULT_LIMITS.api.max >= 100);
   assert.ok(DEFAULT_LIMITS.newSession.max >= 10);

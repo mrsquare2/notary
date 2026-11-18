@@ -6,3 +6,4 @@ backend/data/runtime/
 .DS_Store
 backend/data/*.db
 backend/data/*.db-journal
+.playwright-mcp/

@@ -250,7 +250,7 @@ function onKey(e) {
           <div v-if="!isMock && q.correctOptionId !== undefined" class="feedback" aria-live="polite">
             <div class="verdict" :class="q.correct ? 'ok' : 'bad'">
               <i :class="q.correct ? 'pi pi-check-circle' : 'pi pi-times-circle'" />
-              {{ q.correct ? 'Correct!' : 'Not quite.' }}
+              {{ q.correct ? 'Correct! Nice work.' : 'Not quite. Here is why.' }}
             </div>
             <div class="explain">
               {{ q.explanation }}
@@ -305,15 +305,15 @@ function onKey(e) {
 
 <style scoped>
 .quiz { display: flex; flex-direction: column; gap: 16px; }
-.head { padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; position: sticky; top: 60px; z-index: 5; }
+.head { padding: 16px 22px; display: flex; flex-direction: column; gap: 10px; position: sticky; top: 92px; z-index: 5; }
 .progress-row { margin-bottom: -4px; }
-.clock { font-variant-numeric: tabular-nums; font-weight: 700; font-size: 1.15rem; padding: 4px 12px; border-radius: 8px; background: var(--p-primary-50); color: var(--p-primary-800); }
+.clock { font-variant-numeric: tabular-nums; font-weight: 800; font-size: 1.15rem; padding: 4px 14px; border-radius: 999px; background: var(--brand-soft); color: var(--brand-ink); }
 .clock.low { background: var(--bad-bg); color: var(--bad); animation: pulse 1.2s ease-in-out infinite; }
 @keyframes pulse { 50% { opacity: 0.65; } }
 @media (prefers-reduced-motion: reduce) { .clock.low { animation: none; } }
 
-.body { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 16px; align-items: start; }
-.qtext { font-size: 1.2rem; font-weight: 600; margin: 0 0 18px; line-height: 1.45; }
+.body { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 20px; align-items: start; }
+.qtext { font-size: 1.4rem; font-weight: 800; margin: 0 0 20px; line-height: 1.35; letter-spacing: -0.015em; }
 .feedback { margin-top: 18px; display: flex; flex-direction: column; gap: 10px; }
 .verdict { font-weight: 700; display: flex; align-items: center; gap: 8px; }
 .verdict.ok { color: var(--ok); }
@@ -321,24 +321,24 @@ function onKey(e) {
 .actions { margin-top: 22px; }
 .keys { margin: 14px 0 0; }
 
-.nav { position: sticky; top: 196px; padding: 16px; }
+.nav { position: sticky; top: 240px; padding: 18px; }
 .nav-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
 .nav-btn {
   font: inherit; font-size: 0.82rem; font-weight: 600; height: 34px; border-radius: 8px; cursor: pointer;
-  border: 1px solid var(--line); background: #fff; color: var(--ink); position: relative;
+  border: 1px solid var(--line); background: var(--card); color: var(--ink); position: relative;
 }
-.nav-btn:hover { border-color: var(--p-primary-300); }
-.nav-btn.answered { background: var(--p-primary-100); border-color: var(--p-primary-200); color: var(--p-primary-800); }
-.nav-btn.right { background: var(--ok-bg); border-color: #a7e3bd; color: var(--ok); }
-.nav-btn.wrong { background: var(--bad-bg); border-color: #f5b5b5; color: var(--bad); }
+.nav-btn:hover { border-color: var(--brand); }
+.nav-btn.answered { background: var(--brand-soft); border-color: var(--brand-soft); color: var(--brand-ink); }
+.nav-btn.right { background: var(--ok-bg); border-color: var(--ok-line); color: var(--ok); }
+.nav-btn.wrong { background: var(--bad-bg); border-color: var(--bad-line); color: var(--bad); }
 .nav-btn.flag::after { content: ''; position: absolute; top: 3px; right: 3px; width: 7px; height: 7px; border-radius: 50%; background: var(--flag); }
-.nav-btn.current { outline: 2px solid var(--p-primary-600); outline-offset: 1px; }
+.nav-btn.current { outline: 2px solid var(--brand); outline-offset: 1px; }
 .legend { display: flex; flex-wrap: wrap; gap: 6px 12px; margin-top: 12px; }
 .legend span { display: inline-flex; align-items: center; gap: 5px; }
-.sw { display: inline-block; width: 12px; height: 12px; border-radius: 3px; border: 1px solid var(--line); background: #fff; position: relative; }
-.sw.answered { background: var(--p-primary-100); border-color: var(--p-primary-200); }
-.sw.right { background: var(--ok-bg); border-color: #a7e3bd; }
-.sw.wrong { background: var(--bad-bg); border-color: #f5b5b5; }
+.sw { display: inline-block; width: 12px; height: 12px; border-radius: 4px; border: 1px solid var(--line); background: var(--card); position: relative; }
+.sw.answered { background: var(--brand-soft); border-color: var(--brand-soft); }
+.sw.right { background: var(--ok-bg); border-color: var(--ok-line); }
+.sw.wrong { background: var(--bad-bg); border-color: var(--bad-line); }
 .sw.flag { background: var(--flag); border-color: var(--flag); border-radius: 50%; }
 
 @media (max-width: 860px) {

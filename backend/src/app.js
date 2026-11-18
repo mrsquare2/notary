@@ -1,5 +1,6 @@
 import express from 'express';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
+import { pageMeta, renderPage, robotsTxt, sitemapXml } from './seo.js';
 import { join } from 'node:path';
 import { stateSummary } from './bank.js';
 import {
@@ -9,6 +10,20 @@ import { rateLimit } from './ratelimit.js';
 
 const CLIENT_ID = /^[A-Za-z0-9-]{8,64}$/;
 
+// Same-origin only. 'unsafe-inline' styles: PrimeVue injects its theme as <style> tags at runtime.
+export const CONTENT_SECURITY_POLICY = [
+  "default-src 'self'",
+  "script-src 'self'",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob:",
+  "font-src 'self' data:",
+  "connect-src 'self'",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+].join('; ');
+
 // Per IP. A full 50-question mock is ~55 requests, so `api` leaves plenty of
 // room for real learners while stopping scripted hammering.
 export const DEFAULT_LIMITS = {
@@ -16,13 +31,18 @@ export const DEFAULT_LIMITS = {
   newSession: { windowMs: 10 * 60 * 1000, max: 30, message: 'Too many tests started. Please wait a few minutes.' },
 };
 
-export function createApp({ states, store, staticDir, limits = DEFAULT_LIMITS }) {
+export function createApp({ states, store, staticDir, limits = DEFAULT_LIMITS, hsts = false, siteUrl = null }) {
   const app = express();
   app.disable('x-powered-by');
   app.use(express.json({ limit: '50kb' }));
   app.use((req, res, next) => {
     res.set('X-Content-Type-Options', 'nosniff');
     res.set('Referrer-Policy', 'same-origin');
+    res.set('Content-Security-Policy', CONTENT_SECURITY_POLICY);
+    res.set('X-Frame-Options', 'DENY'); // older browsers that ignore frame-ancestors
+    res.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+    // HTTPS-only hint; only in production, where the site is served over TLS.
+    if (hsts) res.set('Strict-Transport-Security', 'max-age=15552000; includeSubDomains');
     next();
   });
 
@@ -124,10 +144,26 @@ export function createApp({ states, store, staticDir, limits = DEFAULT_LIMITS })
 
   app.use('/api', api);
 
-  // Production: serve the built Vue app and let the client router handle paths.
+  // Absolute links for canonical tags and the sitemap. SITE_URL is the source of truth in
+  // production; otherwise fall back to the request's host (validated, never echoed raw).
+  const baseUrl = (req) => {
+    if (siteUrl) return siteUrl.replace(/\/+$/, '');
+    const host = req.get('host');
+    return `${req.protocol}://${/^[a-z0-9.-]+(:\d+)?$/i.test(host ?? '') ? host : 'localhost'}`;
+  };
+  app.get('/robots.txt', (req, res) => res.type('text/plain').send(robotsTxt(baseUrl(req))));
+  app.get('/sitemap.xml', (req, res) => res.type('application/xml').send(sitemapXml(baseUrl(req), states)));
+
+  // Production: serve the built Vue app. Every page gets its own <head> and readable
+  // content for search engines; the client router takes over once the app loads.
   if (staticDir && existsSync(staticDir)) {
+    const template = readFileSync(join(staticDir, 'index.html'), 'utf8');
     app.use(express.static(staticDir, { index: false, maxAge: '1h' }));
-    app.get(/^\/(?!api\/).*/, (req, res) => res.sendFile(join(staticDir, 'index.html')));
+    app.get(/^\/(?!api\/).*/, (req, res) => {
+      const meta = pageMeta(req.path, states);
+      res.status(meta.status).set('Cache-Control', 'no-cache')
+        .type('html').send(renderPage(template, meta, { siteUrl: baseUrl(req), path: req.path }));
+    });
   }
 
   // eslint-disable-next-line no-unused-vars

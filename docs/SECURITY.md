@@ -18,7 +18,7 @@
 - Rate limiting (`backend/src/ratelimit.js`), per IP: 300 API requests per 5 minutes, and 30 new tests per 10 minutes. `/api/health` is exempt. Over the limit returns 429 with `Retry-After` and `RateLimit-*` headers. Behind Hostinger's proxy, set `TRUST_PROXY` so the real client IP is used.
 - JSON body limit of 50 kB; strict validation of state, mode, topics, count, question and option IDs.
 - All SQL uses `?` placeholders; never build SQL from user input.
-- Headers: `X-Content-Type-Options: nosniff`, `Referrer-Policy: same-origin`, and `x-powered-by` is off. Server errors return a generic message; details go to the server log only.
+- Headers on every response: a Content-Security-Policy allowing only same-origin scripts, styles (plus inline styles, which PrimeVue needs), images, fonts and requests, with `frame-ancestors 'none'`; `X-Frame-Options: DENY`; `X-Content-Type-Options: nosniff`; `Referrer-Policy: same-origin`; a `Permissions-Policy` that turns off camera, microphone and location; `Strict-Transport-Security` in production only. `x-powered-by` is off. No CORS headers, so other sites can't read the API. Server errors return a generic message; details go to the server log only.
 - Production refuses to start without a `mysql://` `DATABASE_URL`.
 
 ## Data and privacy
@@ -32,7 +32,7 @@
 
 - [ ] `npm test` passes; `npm audit` reviewed. Known: high-severity `picomatch` advisories come from node-gyp, which only runs when sqlite3 is built, not at runtime.
 - [ ] HTTPS on the production domain (Hostinger SSL). Domain: **UNKNOWN: ask the owner**.
-- [ ] `NODE_ENV=production`, `DATABASE_URL`, `TRUST_PROXY` set in the host panel; nothing secret in the repo.
+- [ ] `NODE_ENV=production`, `DATABASE_URL`, `TRUST_PROXY=1`, `SITE_URL` set in the host panel; nothing secret in the repo.
 - [ ] Rate limits verified behind the real proxy (429 after the limit, per real client IP).
 - [ ] Sessions/results moved to MySQL (planned), so redeploys don't lose data.
 - [ ] Admin login tested: wrong password, lockout, cookie flags, logout. (Planned feature.)

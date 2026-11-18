@@ -63,7 +63,7 @@ function remove(r, event) {
   <div class="container page stack">
     <div>
       <div class="eyebrow">Your progress</div>
-      <h1 class="title">Test history</h1>
+      <h1 class="page-title">Your progress</h1>
       <p class="muted small" style="margin: 0">Results are saved for this browser only.</p>
     </div>
 
@@ -88,7 +88,7 @@ function remove(r, event) {
         <template #empty>
           <div class="empty">
             <p class="muted">No results yet.</p>
-            <Button label="Start practising" icon="pi pi-book" size="small" @click="router.push('/practice')" />
+            <Button label="Start practice" icon="pi pi-book" size="small" @click="router.push('/practice')" />
           </div>
         </template>
         <Column header="Date" field="submittedAt" sortable>
@@ -124,7 +124,6 @@ function remove(r, event) {
 </template>
 
 <style scoped>
-.title { font-size: 1.8rem; margin: 6px 0 4px; }
 .clickable :deep(tbody tr) { cursor: pointer; }
 .empty { text-align: center; padding: 20px; }
 </style>

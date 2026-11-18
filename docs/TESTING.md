@@ -16,7 +16,9 @@ Tests use an in-memory SQLite DB (`:memory:`) seeded from the JSON files, so the
 ## What the suites cover today
 
 - `test/bank.test.js`: all four state banks load and validate; ≥150 questions per state and ≥600 total; core topics populated; ≥15% each of easy, medium and hard; every option has a `why` starting "Correct."/"Wrong." of ≥25 characters; sources present; unique IDs and text; validator rejects bad data; SQLite seed → load round trip (and re-seed doesn't duplicate); shuffle and mock allocation.
-- `test/api.test.js`: states listing; client ID required; practice filtering, hidden answer key, feedback with per-option explanations, answer locking; option shuffling; timed mock grading and pass/fail; per-browser privacy; bad-input rejection; rate limit returns 429 with `Retry-After`, while `/health` is not limited.
+- `test/api.test.js`: states listing; client ID required; practice filtering, hidden answer key, feedback with per-option explanations, answer locking; option shuffling; timed mock grading and pass/fail; per-browser privacy; bad-input rejection; rate limit returns 429 with `Retry-After`, while `/health` is not limited; security headers present and no CORS.
+- `test/seo.test.js`: each state page gets its own title, canonical link, FAQ structured data and readable HTML; Texas copy never claims a state exam; private and unknown pages are `noindex` (unknown = 404); `robots.txt` and `sitemap.xml` use `SITE_URL` and list every state; HTML and JSON-LD are escaped.
+- `test/store.test.js`: the global results cap drops the oldest results.
 
 ## What must have a test
 
