@@ -4,7 +4,7 @@
   "authority": "Texas Secretary of State",
   "notes": "Texas does not give a state-run notary exam. This mock exam is a self-check built on the same law new notaries must know.",
   "disclaimer": "Study aid only, not legal advice. Questions are based on Texas Government Code ch. 406, Civil Practice & Remedies Code ch. 121, 1 Texas Administrative Code ch. 87 and Texas Secretary of State notary guidance. Check the Secretary of State's current notary publications before relying on any rule.",
-  "mock": { "questions": 50, "minutes": 60, "passPercent": 70 },
+  "mock": { "questions": 20, "minutes": 30, "passPercent": 70 },
   "topics": [
     { "id": "commission", "name": "Commission & Qualifications", "description": "Eligibility, appointment, bond, term and changes to your commission." },
     { "id": "identification", "name": "Identification", "description": "Personal knowledge, ID cards and credible witnesses." },
