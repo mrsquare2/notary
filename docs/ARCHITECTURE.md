@@ -23,13 +23,16 @@ backend/
   data/runtime/           sessions.json, results.json (git-ignored)
   src/db.js               one small interface over SQLite and MySQL: all(), run(), close()
   src/bank.js             validate, seed and load the question bank
-  src/seed.js             CLI: copy JSON seed into the DB
+  scripts/seed.js         CLI: copy JSON seed into the DB (npm run db:seed; overwrites those states)
   src/quiz.js             selection, shuffling, mock allocation, grading
   src/ratelimit.js        in-memory per-IP rate limiter
   src/store.js            JSON-file store for sessions/results
   src/app.js              Express routes (+ serves frontend/dist in production)
   src/seo.js              per-page <head>, readable HTML, FAQ data, robots.txt, sitemap.xml
-  src/server.js           startup: pick DB, load bank, listen
+  src/server.js           startup: env checks, seed missing states, load bank, listen
+  src/env.js              loads <app root>/.env if present (host panel values win)
+  serverEntry.js          single entry file, in the repo and at the root of the deploy zip
+scripts/                  package.mjs (npm run package → dist/serverEntry.zip), zip.mjs (zip writer, no dependency)
   test/                   node:test suites
 frontend/src/
   views/                  Home, PracticeSetup, MockSetup, Quiz, Result, History
@@ -46,9 +49,9 @@ frontend/public/
 ## How the parts connect
 
 1. `npm run db:seed` reads `backend/data/states/**` and validates it. It then writes the tables in `docs/DATABASE.md`, inside a transaction per state.
-2. On startup `server.js` opens the DB named by `DATABASE_URL` (default: local SQLite file) and loads every state into memory. It then closes the DB connection, so the bank is read-only at runtime. **Planned:** admin edits reload the in-memory bank after saving.
+2. On startup `server.js` opens the DB named by `DATABASE_URL` (default: local SQLite file), seeds any state the DB doesn't have yet from `data/states/` (existing states are never touched), and loads every state into memory. It then closes the DB connection, so the bank is read-only at runtime. **Planned:** admin edits reload the in-memory bank after saving.
 3. The browser calls `/api/*` with an anonymous `x-client-id`. Sessions hold only question IDs and option order; the answer key stays on the server until a practice answer is locked or a mock is submitted.
-4. In production, Express serves `frontend/dist` and the API on one port (`PORT`, default 4100). In development, Vite serves the UI on :5180 and proxies `/api` to :4100.
+4. In production, Express serves the built app (`public/` in the deploy zip, `frontend/dist` in the repo) and the API on one port (`PORT`, default 4100). In development, Vite serves the UI on :5180 and proxies `/api` to :4100.
 
 ## Environment variables
 
@@ -59,7 +62,7 @@ frontend/public/
 | `PORT` | HTTP port (default 4100). |
 | `DATA_DIR` | Folder for sessions/results JSON (default `backend/data/runtime`). |
 | `TRUST_PROXY` | Number of proxy hops (e.g. `1`) so rate limits see the real client IP. Anything other than a number stops the server. Default for Hostinger: `1`. **Default chosen, please confirm.** |
-| `SITE_URL` | Public address, e.g. `https://www.example.com`, used for canonical links, `robots.txt` and `sitemap.xml`. Without it the request's host is used. Domain: **UNKNOWN: ask the owner**. |
+| `SITE_URL` | Public address, e.g. `https://www.example.com`, used for canonical links. Without it the request's host is used. `robots.txt` and `sitemap.xml` are static files written by `npm run package`, which requires `SITE_URL`. Domain: **UNKNOWN: ask the owner**. |
 | `ADMIN_PASSWORD_HASH`, `SESSION_SECRET` | **Planned** for the admin screen. Never commit values. |
 
 ## Pages and search
@@ -71,4 +74,4 @@ frontend/public/
 ## Known limits
 
 - Rate-limit counters and the loaded bank live in one process. Running several processes multiplies limits and needs a shared store.
-- The DB is master for questions once the admin screen ships (see `docs/DATABASE.md`). Today `db:seed`, and `npm run dev` through its `predev` hook, **overwrite** each seeded state; that must change before admin edits go live.
+- The DB is master for questions once the admin screen ships (see `docs/DATABASE.md`). Server start only adds missing states, but `db:seed`, and `npm run dev` through its `predev` hook, still **overwrite** each seeded state; that must change before admin edits go live.

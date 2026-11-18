@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { readSeedStates } from '../src/bank.js';
 import { Store } from '../src/store.js';
 import { createApp } from '../src/app.js';
-import { pageMeta, renderPage } from '../src/seo.js';
+import { pageMeta, renderPage, robotsTxt, sitemapXml } from '../src/seo.js';
 
 const states = new Map(readSeedStates().map((s) => [s.code, s]));
 const TEMPLATE = '<!doctype html><html><head><title>Default</title><meta name="description" content="x"></head><body><div id="app"></div></body></html>';
@@ -17,6 +17,7 @@ let base;
 before(async () => {
   dir = mkdtempSync(join(tmpdir(), 'seo-'));
   writeFileSync(join(dir, 'index.html'), TEMPLATE);
+  writeFileSync(join(dir, 'robots.txt'), robotsTxt('https://notary.example')); // as `npm run package` writes it
   const app = createApp({ states, store: new Store(null), staticDir: dir, siteUrl: 'https://notary.example' });
   await new Promise((resolve) => { server = app.listen(0, resolve); });
   base = `http://127.0.0.1:${server.address().port}`;
@@ -53,11 +54,19 @@ test('private and unknown pages are kept out of search', async () => {
   assert.equal(missing.status, 404);
 });
 
-test('robots.txt and sitemap.xml point at the site URL and list every state', async () => {
-  const robots = await (await fetch(`${base}/robots.txt`)).text();
+test('robots.txt is a static file; the app no longer generates either file per request', async () => {
+  const res = await fetch(`${base}/robots.txt`);
+  assert.equal(res.status, 200);
+  assert.match(await res.text(), /Sitemap: https:\/\/notary\.example\/sitemap\.xml/);
+  // This static folder has no sitemap.xml, so the app must not make one up.
+  assert.equal((await fetch(`${base}/sitemap.xml`)).status, 404);
+});
+
+test('robots.txt and sitemap.xml content points at the site URL and lists every state', () => {
+  const robots = robotsTxt('https://notary.example');
   assert.match(robots, /Disallow: \/quiz\//);
   assert.match(robots, /Sitemap: https:\/\/notary\.example\/sitemap\.xml/);
-  const xml = await (await fetch(`${base}/sitemap.xml`)).text();
+  const xml = sitemapXml('https://notary.example', states);
   for (const slug of ['texas', 'new-york', 'california', 'florida']) assert.match(xml, new RegExp(`<loc>https://notary\\.example/${slug}</loc>`));
 });
 

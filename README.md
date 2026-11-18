@@ -20,7 +20,7 @@ npm run db:seed      # copy the JSON question bank into the local SQLite file (b
 npm run dev          # API on :4100, web app on http://localhost:5180 (seeds first)
 ```
 
-Production: `npm run build`, then `npm start` with `NODE_ENV=production` and `DATABASE_URL=mysql://user:pass@host:3306/dbname` (run `npm run db:seed` once against that database). Express serves the built app and the API on port 4100 (set `PORT` to change it). Behind a reverse proxy, set `TRUST_PROXY=1` (a hop count) so rate limits see the real client IP, and set `SITE_URL=https://yourdomain.com` for canonical links and the sitemap.
+Production: `SITE_URL=https://yourdomain.com npm run package` builds `dist/serverEntry.zip` (the built app, backend code, question seed, and static `robots.txt` + `sitemap.xml` for that domain). Upload and unzip it, run `npm install --omit=dev`, set the variables from `.env.example` (in the hosting panel or a `.env` file): `NODE_ENV=production`, `DATABASE_URL=mysql://user:pass@host:3306/dbname`, `SITE_URL`, and behind a reverse proxy `TRUST_PROXY=1` (a hop count) so rate limits see the real client IP. Then start `node serverEntry.js`. The first start fills an empty database with the questions; later starts only add states that are missing. Express serves the app and the API on `PORT` (default 4100).
 
 The question bank lives in SQLite locally and MySQL in production; the JSON files under `backend/data/states/` are the seed. `sqlite3` builds a native module and is approved in `backend/package.json` → `allowScripts`.
 
@@ -38,7 +38,8 @@ backend/
   data/runtime/                   sessions.json + results.json (created at runtime, git-ignored)
   src/db.js        SQLite (local) / MySQL (production) behind one small interface
   src/bank.js      validates the seed, writes it to the DB, loads it back (fails fast on bad data)
-  src/seed.js      npm run db:seed
+  scripts/seed.js  npm run db:seed (overwrites seeded states)
+  serverEntry.js   single entry file (repo and deploy zip)
   src/quiz.js      random selection, shuffling, per-topic allocation, grading
   src/ratelimit.js per-IP rate limiting
   src/store.js     JSON-file persistence (atomic writes, global results cap)

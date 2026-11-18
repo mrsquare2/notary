@@ -6,7 +6,8 @@ Run the tests and show the output. Do not just say "done".
 
 | What | Command |
 |---|---|
-| All backend tests | `npm test` (runs `node --test "test/*.test.js"` in `backend/`) |
+| All tests | `npm test` (runs `node --test "test/*.test.js"` in `backend/`, then `node --test scripts/`) |
+| Deploy package builds | `SITE_URL=https://example.com npm run package` |
 | One file | `cd backend && node --test test/api.test.js` |
 | Frontend builds cleanly | `npm run build` |
 | Seed and start locally to try it | `npm run db:seed && npm run dev`, then open http://localhost:5180 |
@@ -15,10 +16,11 @@ Tests use an in-memory SQLite DB (`:memory:`) seeded from the JSON files, so the
 
 ## What the suites cover today
 
-- `test/bank.test.js`: all four state banks load and validate; ≥150 questions per state and ≥600 total; core topics populated; ≥15% each of easy, medium and hard; every option has a `why` starting "Correct."/"Wrong." of ≥25 characters; sources present; unique IDs and text; validator rejects bad data; SQLite seed → load round trip (and re-seed doesn't duplicate); shuffle and mock allocation.
+- `test/bank.test.js`: all four state banks load and validate; ≥150 questions per state and ≥600 total; core topics populated; ≥15% each of easy, medium and hard; every option has a `why` starting "Correct."/"Wrong." of ≥25 characters; sources present; unique IDs and text; validator rejects bad data; SQLite seed → load round trip (and re-seed doesn't duplicate); shuffle and mock allocation; server-start seeding adds only missing states and never overwrites an existing one.
 - `test/api.test.js`: states listing; client ID required; practice filtering, hidden answer key, feedback with per-option explanations, answer locking; option shuffling; timed mock grading and pass/fail; per-browser privacy; bad-input rejection; rate limit returns 429 with `Retry-After`, while `/health` is not limited; security headers present and no CORS.
-- `test/seo.test.js`: each state page gets its own title, canonical link, FAQ structured data and readable HTML; Texas copy never claims a state exam; private and unknown pages are `noindex` (unknown = 404); `robots.txt` and `sitemap.xml` use `SITE_URL` and list every state; HTML and JSON-LD are escaped.
+- `test/seo.test.js`: each state page gets its own title, canonical link, FAQ structured data and readable HTML; Texas copy never claims a state exam; private and unknown pages are `noindex` (unknown = 404); `robots.txt` and `sitemap.xml` (static files written by `npm run package`) use the site URL and list every state, and the app no longer generates them per request; HTML and JSON-LD are escaped.
 - `test/store.test.js`: the global results cap drops the oldest results.
+- `scripts/zip.test.mjs`: the deploy zip writer round-trips nested files with forward-slash, UTF-8 names and valid CRCs.
 
 ## What must have a test
 

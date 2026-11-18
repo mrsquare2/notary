@@ -28,6 +28,7 @@ Items marked **Planned** in these files are agreed but not built yet. Items mark
 | Run tests | `npm test` |
 | Build the web app | `npm run build` |
 | Start production (serves API + built app) | `npm start` (needs `NODE_ENV=production` and `DATABASE_URL=mysql://...`) |
+| Build the deploy zip | `SITE_URL=https://yourdomain.com npm run package` → `dist/serverEntry.zip` |
 
 ## Rules
 
