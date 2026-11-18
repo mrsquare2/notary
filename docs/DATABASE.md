@@ -6,7 +6,7 @@ Never rename or delete a table or field without asking the owner. Column types a
 
 - **Decision:** once the admin screen ships, the **database is the master copy** of questions.
 - The JSON files in `backend/data/states/` are the initial seed and a reviewable backup format.
-- **Planned change:** `db:seed` must only fill a state that is missing from the DB and must never overwrite an existing state. The `predev` auto-seed must follow the same rule. An admin "Export JSON" writes the current DB bank back to the seed format. **Today the seed overwrites** (see `docs/ARCHITECTURE.md`).
+- **Planned change:** `db:seed` must only fill a state that is missing from the DB and must never overwrite an existing state. The `predev` auto-seed must follow the same rule. An admin "Export JSON" writes the current DB bank back to the seed format. Server start already follows this rule (it only adds missing states). **`db:seed` and `predev` still overwrite** (see `docs/ARCHITECTURE.md`).
 
 ## Tables (built)
 

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readSeedStates, seedStates, loadStates, validateState, DIFFICULTIES } from '../src/bank.js';
+import { readSeedStates, seedStates, seedMissingStates, loadStates, validateState, DIFFICULTIES } from '../src/bank.js';
 import { openDb } from '../src/db.js';
 import { shuffle, allocateByTopic } from '../src/quiz.js';
 
@@ -112,5 +112,21 @@ test('mock allocation hits the exact count and covers every topic', () => {
     assert.equal(picked.length, s.mock.questions);
     assert.equal(new Set(picked.map((q) => q.id)).size, picked.length);
     assert.equal(new Set(picked.map((q) => q.topic)).size, s.topics.length, `${s.code} mock misses a topic`);
+  }
+});
+
+test('server-start seeding fills only missing states and never overwrites existing ones', async () => {
+  const db = await openDb(':memory:');
+  try {
+    await seedStates(db, seed.filter((s) => s.code === 'TX'));
+    await db.run("UPDATE questions SET explanation = 'edited in the database' WHERE id = 'tx-fee-01'");
+    const added = await seedMissingStates(db, seed);
+    assert.deepEqual(added.sort(), ['CA', 'FL', 'NY']);
+    const loaded = await loadStates(db);
+    assert.equal(loaded.size, 4);
+    assert.equal(loaded.get('TX').byId.get('tx-fee-01').explanation, 'edited in the database');
+    assert.deepEqual(await seedMissingStates(db, seed), [], 'a second start adds nothing');
+  } finally {
+    await db.close();
   }
 });

@@ -111,6 +111,16 @@ export async function seedStates(db, states) {
   }
 }
 
+// Seeds only the states the database doesn't have yet (first deploy, or a newly added
+// state). Never touches existing states, so edits made in the database survive restarts.
+// Returns the codes it added.
+export async function seedMissingStates(db, states) {
+  const have = new Set((await db.all('SELECT code FROM states')).map((r) => r.code));
+  const missing = states.filter((s) => !have.has(s.code));
+  await seedStates(db, missing);
+  return missing.map((s) => s.code);
+}
+
 // Loads every state from the database into memory (the bank is small and
 // read-only at runtime), validated and indexed for the quiz engine.
 export async function loadStates(db) {

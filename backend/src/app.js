@@ -1,6 +1,6 @@
 import express from 'express';
 import { existsSync, readFileSync } from 'node:fs';
-import { pageMeta, renderPage, robotsTxt, sitemapXml } from './seo.js';
+import { pageMeta, renderPage } from './seo.js';
 import { join } from 'node:path';
 import { stateSummary } from './bank.js';
 import {
@@ -144,15 +144,14 @@ export function createApp({ states, store, staticDir, limits = DEFAULT_LIMITS, h
 
   app.use('/api', api);
 
-  // Absolute links for canonical tags and the sitemap. SITE_URL is the source of truth in
-  // production; otherwise fall back to the request's host (validated, never echoed raw).
+  // Absolute links for canonical tags. SITE_URL is the source of truth in production;
+  // otherwise fall back to the request's host (validated, never echoed raw).
+  // robots.txt and sitemap.xml are static files written by `npm run package`.
   const baseUrl = (req) => {
     if (siteUrl) return siteUrl.replace(/\/+$/, '');
     const host = req.get('host');
     return `${req.protocol}://${/^[a-z0-9.-]+(:\d+)?$/i.test(host ?? '') ? host : 'localhost'}`;
   };
-  app.get('/robots.txt', (req, res) => res.type('text/plain').send(robotsTxt(baseUrl(req))));
-  app.get('/sitemap.xml', (req, res) => res.type('application/xml').send(sitemapXml(baseUrl(req), states)));
 
   // Production: serve the built Vue app. Every page gets its own <head> and readable
   // content for search engines; the client router takes over once the app loads.
