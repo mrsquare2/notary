@@ -58,7 +58,7 @@ async function start() {
 <template>
   <div class="container page">
     <div class="eyebrow">Practice mode</div>
-    <h1 class="title">Topic-wise practice</h1>
+    <h1 class="page-title">Topic practice</h1>
     <p class="muted intro">
       Choose the areas you want to drill. Questions are drawn at random and answer choices are shuffled every time.
       After each answer you'll see whether you were right, with an explanation and the legal source.
@@ -106,20 +106,19 @@ async function start() {
 </template>
 
 <style scoped>
-.title { font-size: 1.8rem; margin: 6px 0 8px; }
 .intro { max-width: 720px; margin: 0 0 24px; }
-.layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 16px; align-items: start; }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 20px; align-items: start; }
 @media (max-width: 860px) { .layout { grid-template-columns: 1fr; } }
-.h2 { font-size: 1.1rem; }
+.h2 { font-size: 1.2rem; font-weight: 800; }
 .topic-list { display: grid; gap: 8px; }
-.topic { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; cursor: pointer; }
-.topic:hover { border-color: var(--p-primary-300); }
-.topic.on { border-color: var(--p-primary-400); background: var(--p-primary-50); }
+.topic { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border: 2px solid var(--line); border-radius: 16px; cursor: pointer; background: var(--card); }
+.topic:hover { border-color: var(--brand); }
+.topic.on { border-color: var(--brand); background: var(--brand-soft); }
 .t-body { display: flex; flex-direction: column; flex: 1; }
-.t-name { font-weight: 600; }
+.t-name { font-weight: 700; }
 .t-desc { font-size: 0.82rem; color: var(--muted); }
-.t-count { font-size: 0.8rem; font-weight: 600; color: var(--muted); background: #f1f5f9; border-radius: 999px; padding: 2px 10px; }
-.side { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 76px; }
+.t-count { font-size: 0.8rem; font-weight: 600; color: var(--muted); background: var(--card-2); border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; }
+.side { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 100px; }
 .label { margin-bottom: 6px; }
 .summary { display: flex; flex-direction: column; gap: 6px; padding: 12px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 </style>

@@ -28,13 +28,19 @@ backend/
   src/ratelimit.js        in-memory per-IP rate limiter
   src/store.js            JSON-file store for sessions/results
   src/app.js              Express routes (+ serves frontend/dist in production)
+  src/seo.js              per-page <head>, readable HTML, FAQ data, robots.txt, sitemap.xml
   src/server.js           startup: pick DB, load bank, listen
   test/                   node:test suites
 frontend/src/
   views/                  Home, PracticeSetup, MockSetup, Quiz, Result, History
   stores/catalog.js       states list + selected state
   api.js                  fetch wrapper; adds the anonymous x-client-id header
+  components/             ReadinessRing
+  brand.js                product name (one place) and page titles
   utils/                  pdf.js, format helpers, active-mock memory
+frontend/public/
+  fonts/                  self-hosted Plus Jakarta Sans (OFL licence alongside)
+  media/                  landing-page clips (.webm) and posters (.jpg), recorded from the real app
 ```
 
 ## How the parts connect
@@ -52,8 +58,15 @@ frontend/src/
 | `DATABASE_URL` | `mysql://user:pass@host:3306/db` in production; a SQLite path or nothing locally. |
 | `PORT` | HTTP port (default 4100). |
 | `DATA_DIR` | Folder for sessions/results JSON (default `backend/data/runtime`). |
-| `TRUST_PROXY` | Set (e.g. `1`) behind a proxy so rate limits see the real client IP. Default for Hostinger: `1`. **Default chosen, please confirm.** |
+| `TRUST_PROXY` | Number of proxy hops (e.g. `1`) so rate limits see the real client IP. Anything other than a number stops the server. Default for Hostinger: `1`. **Default chosen, please confirm.** |
+| `SITE_URL` | Public address, e.g. `https://www.example.com`, used for canonical links, `robots.txt` and `sitemap.xml`. Without it the request's host is used. Domain: **UNKNOWN: ask the owner**. |
 | `ADMIN_PASSWORD_HASH`, `SESSION_SECRET` | **Planned** for the admin screen. Never commit values. |
+
+## Pages and search
+
+- `/`, `/texas`, `/new-york`, `/california`, `/florida`, `/practice`, `/mock` are public and indexable. In production, Express fills `frontend/dist/index.html` per path with its title, description, canonical link, Open Graph tags, FAQ structured data and readable HTML inside `#app`, which Vue replaces on load.
+- `/quiz/*`, `/results/*`, `/history` are `noindex` and disallowed in `robots.txt`; unknown paths return 404.
+- The state FAQ comes from `faqFor()` in `seo.js` and is served to the landing page through `/api/states`, so the page and its structured data always match.
 
 ## Known limits
 

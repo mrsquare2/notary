@@ -26,6 +26,9 @@ Note on states: New York and California give a state exam. Texas and Florida do 
 8. **Planned: admin screen.** One admin can sign in and add, edit or retire questions, topics and state settings in the database, and export the bank as JSON for backup and review.
 9. **Planned: usage page (admin only).** Unique browsers, tests started, mocks completed and pass rate per state, by day, week and month, counted from the anonymous browser IDs. These are estimates: one person on two devices counts twice.
 10. **Planned:** store sessions and results in the database (MySQL in production) instead of JSON files, so they survive redeploys.
+11. **Look and feel:** direction B, "friendly learning app" (see `docs/DESIGN-SYSTEM.md`), in light and dark themes that follow the device setting.
+12. **Landing page:** a state-aware home page with a readiness summary built from the learner's own results, a how-it-works section with short silent screen-recorded clips of the real app, a FAQ about the state's exam, and links to every state page. Texas and Florida copy must say plainly that those states have no state exam.
+13. **Search foundation:** one page per state (`/texas`, `/new-york`, `/california`, `/florida`). The server sends each page its own title, description, canonical link, FAQ structured data and readable HTML content before the app loads, plus `robots.txt` and `sitemap.xml`. Per-learner pages (quiz, results, history) are kept out of search.
 
 Example of done: a learner can open the site, pick New York and start a 10-question practice in under 3 clicks.
 
@@ -36,7 +39,8 @@ Example of done: a learner can open the site, pick New York and start a 10-quest
 - No payments, paywall or pricing. v1 is free.
 - No learner accounts or sign-in. Add email sign-in later together with payments.
 - No legal advice. Every page carries the "study aid only, not legal advice" disclaimer.
-- No third-party analytics or ad trackers. **Default chosen, please confirm.**
+- No third-party analytics or ad trackers. **Default chosen, please confirm.** Fonts are self-hosted for the same reason.
+- No professionally produced promo videos (voiceover, editing). The landing clips are screen recordings of the real app.
 
 ## Success in the first 3 months
 
@@ -47,4 +51,5 @@ Example of done: a learner can open the site, pick New York and start a 10-quest
 
 - Who reviews each state's questions for legal accuracy before launch: **UNKNOWN: ask the owner**. Until then, treat the bank as unreviewed.
 - Support contact, privacy policy and terms of use: **UNKNOWN: ask the owner**.
-- Final product name: **UNKNOWN: ask the owner**.
+- Final product name: **UNKNOWN: ask the owner**. The app shows NotaryPrepPro, set in one place (`frontend/src/brand.js` and `backend/src/seo.js`).
+- Production domain for canonical links and the sitemap: **UNKNOWN: ask the owner**. Set it with `SITE_URL`.

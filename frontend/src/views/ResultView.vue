@@ -130,8 +130,8 @@ function optClass(q, opt) {
           </div>
           <div class="row">
             <SplitButton label="Export PDF" icon="pi pi-download" :model="exportItems" @click="exportPdf(true)" :loading="exporting" />
-            <Button v-if="weakTopics.length" label="Practise weak topics" icon="pi pi-bullseye" severity="secondary" outlined @click="practiceWeak" />
-            <Button :label="isMock ? 'New mock exam' : 'Practise again'" icon="pi pi-refresh" text @click="tryAgain" />
+            <Button v-if="weakTopics.length" label="Practice weak topics" icon="pi pi-bullseye" severity="secondary" outlined @click="practiceWeak" />
+            <Button :label="isMock ? 'New mock exam' : 'Practice again'" icon="pi pi-refresh" text @click="tryAgain" />
           </div>
         </div>
       </section>
@@ -192,16 +192,16 @@ function optClass(q, opt) {
 .hero { display: flex; gap: 32px; align-items: center; }
 .ring {
   flex: none; width: 168px; height: 168px; border-radius: 50%; display: grid; place-items: center;
-  background: conic-gradient(var(--col) calc(var(--pct) * 1%), #e8ecf4 0);
+  background: conic-gradient(var(--col) calc(var(--pct) * 1%), var(--brand-soft) 0);
 }
-.ring-inner { width: 134px; height: 134px; border-radius: 50%; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.pct { font-size: 2.2rem; font-weight: 800; letter-spacing: -0.02em; }
+.ring-inner { width: 134px; height: 134px; border-radius: 50%; background: var(--card); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.pct { font-size: 2.2rem; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
 .hero-body { display: flex; flex-direction: column; gap: 12px; flex: 1; min-width: 0; }
-.verdict { font-size: 1.7rem; display: flex; align-items: center; gap: 10px; }
+.verdict { font-size: 1.9rem; font-weight: 800; display: flex; align-items: center; gap: 10px; }
 .verdict.ok { color: var(--ok); }
 .verdict.bad { color: var(--bad); }
 .stats { padding: 12px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-.h2 { font-size: 1.1rem; margin-bottom: 14px; }
+.h2 { font-size: 1.2rem; font-weight: 800; margin-bottom: 14px; }
 .topics { display: grid; gap: 10px; }
 .topic-row { display: grid; grid-template-columns: 220px 1fr 110px; align-items: center; gap: 14px; }
 .t-name { font-weight: 500; }
@@ -210,7 +210,7 @@ function optClass(q, opt) {
 .bar.good :deep(.p-progressbar-value) { background: var(--ok); }
 .bar.weak :deep(.p-progressbar-value) { background: var(--bad); }
 .review { padding: 18px 0; border-top: 1px solid var(--line); }
-.num { width: 28px; height: 28px; border-radius: 50%; background: var(--navy); color: #fff; display: grid; place-items: center; font-size: 0.8rem; font-weight: 700; }
+.num { width: 30px; height: 30px; border-radius: 10px; background: var(--brand); color: var(--on-brand); display: grid; place-items: center; font-size: 0.8rem; font-weight: 700; }
 .qtext { font-weight: 600; margin: 0 0 12px; }
 .option { cursor: default; }
 .option .mark { color: var(--muted); font-weight: 600; }

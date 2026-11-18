@@ -4,6 +4,7 @@
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { faqFor, slugOf } from './seo.js';
 
 const DEFAULT_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'data', 'states');
 export const DIFFICULTIES = ['easy', 'medium', 'hard'];
@@ -162,6 +163,8 @@ export function stateSummary(state) {
   return {
     code: state.code,
     name: state.name,
+    slug: slugOf(state.name),
+    faq: faqFor(state), // same Q&As as the page's FAQ structured data
     authority: state.authority,
     notes: state.notes,
     disclaimer: state.disclaimer,

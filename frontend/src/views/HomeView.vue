@@ -1,149 +1,245 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, computed, onMounted, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import Button from 'primevue/button';
-import Tag from 'primevue/tag';
 import Skeleton from 'primevue/skeleton';
 import Message from 'primevue/message';
+import { useToast } from 'primevue/usetoast';
 import { useCatalog } from '../stores/catalog.js';
 import { api } from '../api.js';
-import { formatDate, scoreSeverity } from '../utils/format.js';
+import { setTitle } from '../brand.js';
+import { formatDate } from '../utils/format.js';
+import ReadinessRing from '../components/ReadinessRing.vue';
 
+const route = useRoute();
 const router = useRouter();
-const { current, loading, error, load } = useCatalog();
-const recent = ref([]);
+const toast = useToast();
+const { states, current, loading, error, load, select } = useCatalog();
+const results = ref([]);
+const starting = ref(false);
+const reducedMotion = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
+// /texas, /new-york, ... pick that state; an unknown slug goes home.
+async function applyRoute() {
+  await load();
+  const slug = route.params.state;
+  if (slug) {
+    const s = states.value.find((x) => x.slug === slug);
+    if (!s) return router.replace('/');
+    select(s.code);
+  }
+}
 onMounted(async () => {
-  load();
-  try {
-    recent.value = (await api.results()).results.slice(0, 3);
-  } catch { /* history is optional on the home page */ }
+  await applyRoute();
+  try { results.value = (await api.results()).results; } catch { /* progress is optional here */ }
+});
+watch(() => route.params.state, applyRoute);
+watch(current, (s) => setTitle(route.name === 'state' && s ? `${s.name} Notary Practice Test` : null), { immediate: true });
+
+// Readiness comes only from this learner's own results for the selected state.
+const mine = computed(() => results.value.filter((r) => current.value && r.state === current.value.code));
+const readiness = computed(() => {
+  const recent = mine.value.slice(0, 5);
+  const total = recent.reduce((n, r) => n + r.total, 0);
+  return total ? (recent.reduce((n, r) => n + r.correct, 0) / total) * 100 : null;
+});
+const topicStanding = computed(() => {
+  const agg = new Map();
+  for (const r of mine.value.slice(0, 10)) {
+    for (const t of r.byTopic ?? []) {
+      const a = agg.get(t.topic) ?? { id: t.topic, name: t.name, correct: 0, total: 0 };
+      a.correct += t.correct;
+      a.total += t.total;
+      agg.set(t.topic, a);
+    }
+  }
+  const ranked = [...agg.values()].filter((a) => a.total >= 3).map((a) => ({ ...a, pct: (a.correct / a.total) * 100 })).sort((a, b) => b.pct - a.pct);
+  const pass = current.value?.mock.passPercent ?? 70;
+  return { strong: ranked.find((a) => a.pct >= pass) ?? null, weak: [...ranked].reverse().find((a) => a.pct < pass) ?? null };
 });
 
-const recentForState = computed(() => recent.value.filter((r) => !current.value || r.state === current.value.code));
+const clips = [
+  { src: '/media/practice.webm', title: 'Practice by topic', text: 'Answer a question and see why every option is right or wrong, with the law it comes from.' },
+  { src: '/media/mock.webm', title: 'Take a timed mock', text: 'Your state\'s exam format with a real countdown, flags for review and auto-submit.' },
+  { src: '/media/review.webm', title: 'Review and improve', text: 'Score by topic, a full answer review and a PDF report to study from.' },
+];
 
-function practiceTopic(id) {
-  router.push({ name: 'practice', query: { topics: id } });
+async function quickRound() {
+  starting.value = true;
+  try {
+    const s = await api.startSession({ state: current.value.code, mode: 'practice', topics: [], count: 10 });
+    router.push({ name: 'quiz', params: { id: s.id } });
+  } catch (e) {
+    toast.add({ severity: 'error', summary: 'Could not start practice', detail: e.message, life: 5000 });
+  } finally {
+    starting.value = false;
+  }
 }
+const practiceTopic = (id) => router.push({ name: 'practice', query: { topics: id } });
 </script>
 
 <template>
-  <div>
+  <div class="container page home">
+    <Message v-if="error" severity="error" :closable="false">{{ error }}</Message>
+
     <section class="hero">
-      <div class="container hero-inner">
-        <div class="eyebrow gold">Notary public exam prep</div>
-        <h1 v-if="current">Pass your <span class="hl">{{ current.name }}</span> notary exam with confidence</h1>
-        <h1 v-else>Pass your notary exam with confidence</h1>
-        <p class="lead">
-          Practice by topic with instant explanations, then test yourself under exam conditions with a timed mock.
-          Every question is drawn at random and every answer list is shuffled, so no two tests are the same.
+      <div class="hero-main">
+        <span class="free-pill">Free · no sign-up</span>
+        <h1 v-if="current">Get ready to become a {{ current.name }} notary</h1>
+        <h1 v-else>Get ready to become a notary public</h1>
+        <p class="lead" v-if="current">
+          {{ current.questionCount }} practice questions with an explanation for every answer, cited to {{ current.name }} law.
+          Short rounds, timed mocks, and your progress saved on this device.
         </p>
-        <div class="row">
-          <Button label="Start practising" icon="pi pi-book" @click="router.push('/practice')" />
-          <Button label="Take a timed mock exam" icon="pi pi-stopwatch" severity="contrast" outlined class="ghost" @click="router.push('/mock')" />
+        <div class="hero-actions">
+          <Button label="Start a 10-question round" class="cta-light" :loading="starting" :disabled="!current" @click="quickRound" />
+          <Button label="Try a mock exam" class="cta-ghost" @click="router.push('/mock')" />
         </div>
         <div v-if="current" class="facts">
-          <div><b>{{ current.questionCount }}</b><span>questions</span></div>
-          <div><b>{{ current.topics.length }}</b><span>topics</span></div>
-          <div><b>{{ current.mock.questions }} / {{ current.mock.minutes }} min</b><span>mock exam</span></div>
-          <div><b>{{ current.mock.passPercent }}%</b><span>to pass</span></div>
+          <span><b>{{ current.mock.questions }}</b> question mock</span>
+          <span><b>{{ current.mock.minutes }}</b> minutes</span>
+          <span><b>{{ current.mock.passPercent }}%</b> to pass</span>
+          <span><b>{{ current.topics.length }}</b> topics</span>
         </div>
+      </div>
+
+      <aside class="surface ready" aria-labelledby="ready-title">
+        <ReadinessRing :percent="readiness" label="Your readiness" />
+        <h2 id="ready-title" class="section-title">Your readiness</h2>
+        <template v-if="readiness !== null">
+          <p class="small muted center">From your last {{ Math.min(mine.length, 5) }} {{ mine.length === 1 ? 'test' : 'tests' }} in {{ current?.name }}.</p>
+          <div class="row center-row">
+            <span v-if="topicStanding.strong" class="pill ok"><i class="pi pi-check" /> Strong: {{ topicStanding.strong.name }}</span>
+            <button v-if="topicStanding.weak" class="pill bad as-btn" @click="practiceTopic(topicStanding.weak.id)">
+              <i class="pi pi-arrow-right" /> Practice: {{ topicStanding.weak.name }}
+            </button>
+          </div>
+        </template>
+        <p v-else class="small muted center">Finish a practice round and your readiness and weakest topic show up here.</p>
+      </aside>
+    </section>
+
+    <section class="how" aria-labelledby="how-title">
+      <div>
+        <span class="eyebrow">How it works</span>
+        <h2 id="how-title" class="h2">Three ways to study</h2>
+      </div>
+      <div class="grid-3">
+        <figure v-for="c in clips" :key="c.src" class="surface clip">
+          <video :src="c.src" :poster="c.src.replace('.webm', '.jpg')" muted loop playsinline preload="metadata" :autoplay="!reducedMotion" :controls="reducedMotion"
+            :aria-label="`${c.title}: screen recording`" />
+          <figcaption>
+            <h3>{{ c.title }}</h3>
+            <p class="small muted">{{ c.text }}</p>
+          </figcaption>
+        </figure>
       </div>
     </section>
 
-    <div class="container page stack">
-      <Message v-if="error" severity="error" :closable="false">{{ error }}</Message>
-
-      <div class="grid-2">
-        <RouterLink to="/practice" class="surface mode">
-          <i class="pi pi-book icon" />
-          <div>
-            <h2>Topic-wise practice</h2>
-            <p class="muted">Pick one or more areas, such as identification, acknowledgments, jurats, fees or recordkeeping. You see the answer and its explanation after every question.</p>
-          </div>
-          <i class="pi pi-arrow-right go" />
-        </RouterLink>
-        <RouterLink to="/mock" class="surface mode">
-          <i class="pi pi-stopwatch icon" />
-          <div>
-            <h2>Timed mock exam</h2>
-            <p class="muted" v-if="current">{{ current.mock.questions }} questions across every topic, {{ current.mock.minutes }} minutes on the clock, no feedback until you submit. {{ current.mock.passPercent }}% to pass.</p>
-            <p class="muted" v-else>A full-length exam under timed conditions.</p>
-          </div>
-          <i class="pi pi-arrow-right go" />
-        </RouterLink>
+    <section class="surface" aria-labelledby="topics-title">
+      <div class="row head-row">
+        <h2 id="topics-title" class="h2">Practice a topic</h2>
+        <span class="spacer" />
+        <span class="small muted" v-if="current">{{ current.name }} · {{ current.authority }}</span>
       </div>
+      <div v-if="loading && !current" class="topics">
+        <Skeleton v-for="n in 6" :key="n" height="96px" borderRadius="16px" />
+      </div>
+      <div v-else-if="current" class="topics">
+        <button v-for="t in current.topics" :key="t.id" class="topic" @click="practiceTopic(t.id)">
+          <span class="t-name">{{ t.name }}</span>
+          <span class="t-desc">{{ t.description }}</span>
+          <span class="t-count">{{ t.count }} questions <i class="pi pi-arrow-right" /></span>
+        </button>
+      </div>
+    </section>
 
-      <section class="surface">
-        <div class="row" style="margin-bottom: 14px">
-          <h2 class="h2">Practice a topic</h2>
-          <span class="spacer" />
-          <span class="small muted" v-if="current">{{ current.name }} · {{ current.authority }}</span>
-        </div>
-        <div v-if="loading && !current" class="topics">
-          <Skeleton v-for="n in 6" :key="n" height="74px" borderRadius="12px" />
-        </div>
-        <div v-else-if="current" class="topics">
-          <button v-for="t in current.topics" :key="t.id" class="topic" @click="practiceTopic(t.id)">
-            <span class="t-name">{{ t.name }}</span>
-            <span class="t-desc">{{ t.description }}</span>
-            <span class="t-count">{{ t.count }} questions</span>
-          </button>
-        </div>
-      </section>
+    <section v-if="mine.length" class="surface">
+      <div class="row head-row">
+        <h2 class="h2">Recent results</h2>
+        <span class="spacer" />
+        <RouterLink to="/history" class="small">See all</RouterLink>
+      </div>
+      <RouterLink v-for="r in mine.slice(0, 3)" :key="r.id" :to="`/results/${r.id}`" class="recent">
+        <span class="pill">{{ r.mode === 'mock' ? 'Mock exam' : 'Practice' }}</span>
+        <span class="small muted">{{ formatDate(r.submittedAt) }}</span>
+        <span class="spacer" />
+        <span class="pill" :class="r.percent >= (r.passPercent ?? 70) ? 'ok' : 'bad'">{{ Math.round(r.percent) }}%</span>
+      </RouterLink>
+    </section>
 
-      <section v-if="recentForState.length" class="surface">
-        <div class="row" style="margin-bottom: 10px">
-          <h2 class="h2">Recent results</h2>
-          <span class="spacer" />
-          <RouterLink to="/history" class="small">See all</RouterLink>
-        </div>
-        <RouterLink v-for="r in recentForState" :key="r.id" :to="`/results/${r.id}`" class="recent">
-          <span class="row" style="gap: 8px">
-            <Tag :value="r.mode === 'mock' ? 'Mock exam' : 'Practice'" :severity="r.mode === 'mock' ? 'info' : 'secondary'" />
-            <span class="small muted">{{ formatDate(r.submittedAt) }}</span>
-          </span>
-          <span class="spacer" />
-          <Tag :value="`${r.percent}%`" :severity="scoreSeverity(r.percent, r.passPercent ?? 70)" />
-        </RouterLink>
-      </section>
+    <section v-if="current?.faq?.length" class="surface" aria-labelledby="faq-title">
+      <h2 id="faq-title" class="h2">{{ current.name }} notary exam: common questions</h2>
+      <details v-for="(f, i) in current.faq" :key="i" class="faq" :open="i === 0">
+        <summary>{{ f.q }}</summary>
+        <p>{{ f.a }}</p>
+      </details>
+    </section>
 
-      <p v-if="current?.notes" class="disclaimer"><i class="pi pi-info-circle" /> {{ current.notes }}</p>
-      <p v-if="current?.disclaimer" class="disclaimer">{{ current.disclaimer }}</p>
-    </div>
+    <nav v-if="states.length > 1" class="other" aria-label="Other states">
+      <span class="eyebrow">Studying for another state?</span>
+      <div class="row">
+        <RouterLink v-for="s in states.filter((x) => x.code !== current?.code)" :key="s.code" :to="`/${s.slug}`" class="pill">{{ s.name }}</RouterLink>
+      </div>
+    </nav>
   </div>
 </template>
 
 <style scoped>
-.hero { background: linear-gradient(160deg, var(--navy) 0%, var(--navy-2) 100%); color: #fff; }
-.hero-inner { padding: 48px 16px 40px; }
-.gold { color: var(--gold); }
-.hero h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); max-width: 760px; margin: 10px 0 14px; }
-.hl { color: var(--gold); }
-.lead { color: #d6dcf5; max-width: 680px; font-size: 1.05rem; margin: 0 0 22px; }
-.ghost { color: #fff !important; border-color: rgba(255, 255, 255, 0.5) !important; }
-.facts { display: flex; gap: 32px; flex-wrap: wrap; margin-top: 32px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.15); }
-.facts div { display: flex; flex-direction: column; }
-.facts b { font-size: 1.25rem; }
-.facts span { color: #b8c2ea; font-size: 0.85rem; }
+.home { display: flex; flex-direction: column; gap: 28px; padding-top: 12px; }
+.hero { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 24px; }
+.hero-main { background: var(--hero); color: var(--on-hero); border-radius: var(--radius-lg); padding: 48px; display: flex; flex-direction: column; gap: 20px; }
+.free-pill { align-self: flex-start; background: color-mix(in srgb, var(--on-hero) 18%, transparent); border-radius: 999px; padding: 6px 14px; font-size: 0.82rem; font-weight: 700; }
+.hero h1 { font-size: clamp(2rem, 4.4vw, 3rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.06; }
+.lead { margin: 0; font-size: 1.1rem; color: var(--on-hero-muted); max-width: 560px; }
+.hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.hero-actions :deep(.p-button) { border-radius: 16px; padding: 14px 24px; font-weight: 800; font-size: 1rem; }
+.cta-light { background: var(--on-hero) !important; color: var(--hero) !important; border-color: var(--on-hero) !important; }
+.cta-ghost { background: color-mix(in srgb, var(--on-hero) 14%, transparent) !important; color: var(--on-hero) !important; border-color: transparent !important; }
+.facts { display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: 0.92rem; color: var(--on-hero-muted); padding-top: 18px; border-top: 1px solid color-mix(in srgb, var(--on-hero) 22%, transparent); }
+.facts b { color: var(--on-hero); font-size: 1.05rem; }
 
-.mode { display: flex; gap: 16px; align-items: flex-start; text-decoration: none; transition: border-color 0.15s, box-shadow 0.15s; }
-.mode:hover { border-color: var(--p-primary-300); box-shadow: 0 6px 20px rgba(30, 42, 90, 0.08); }
-.mode h2 { font-size: 1.15rem; margin-bottom: 6px; }
-.mode p { margin: 0; }
-.mode .icon { font-size: 1.4rem; color: var(--p-primary-600); background: var(--p-primary-50); padding: 12px; border-radius: 12px; }
-.mode .go { margin-left: auto; color: var(--muted); padding-top: 4px; }
+.ready { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; text-align: center; border-radius: var(--radius-lg); }
+.center { margin: 0; max-width: 280px; }
+.center-row { justify-content: center; }
+.as-btn { border: 0; font: inherit; font-size: 0.82rem; font-weight: 700; cursor: pointer; }
 
-.h2 { font-size: 1.1rem; }
-.topics { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+.h2 { font-size: 1.35rem; font-weight: 800; margin-top: 4px; }
+.how { display: flex; flex-direction: column; gap: 16px; }
+.clip { padding: 0; overflow: hidden; margin: 0; display: flex; flex-direction: column; }
+.clip video { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; object-position: top; background: var(--card-2); display: block; border-bottom: 1px solid var(--line); }
+.clip figcaption { padding: 18px 20px 20px; }
+.clip h3 { font-size: 1.05rem; font-weight: 800; }
+.clip p { margin: 6px 0 0; }
+
+.head-row { margin-bottom: 16px; }
+.topics { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
 .topic {
-  display: flex; flex-direction: column; gap: 4px; text-align: left; font: inherit; color: inherit;
-  border: 1px solid var(--line); border-radius: 12px; background: #fff; padding: 12px 14px; cursor: pointer;
+  display: flex; flex-direction: column; gap: 6px; text-align: left; font: inherit; color: inherit;
+  border: 2px solid var(--line); border-radius: 16px; background: var(--card); padding: 16px; cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
 }
-.topic:hover { border-color: var(--p-primary-300); background: var(--p-primary-50); }
-.t-name { font-weight: 600; }
-.t-desc { font-size: 0.82rem; color: var(--muted); }
-.t-count { font-size: 0.78rem; color: var(--p-primary-700); font-weight: 600; margin-top: 2px; }
+.topic:hover { border-color: var(--brand); background: var(--brand-soft); }
+.t-name { font-weight: 800; }
+.t-desc { font-size: 0.85rem; color: var(--muted); flex: 1; }
+.t-count { font-size: 0.8rem; color: var(--brand-ink); font-weight: 700; display: flex; align-items: center; gap: 6px; }
+.t-count .pi { font-size: 0.7rem; }
 
-.recent { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); text-decoration: none; }
+.recent { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); text-decoration: none; color: inherit; }
+
+.faq { border-top: 1px solid var(--line); padding: 14px 0; }
+.faq:first-of-type { margin-top: 12px; }
+.faq summary { cursor: pointer; font-weight: 700; list-style: none; display: flex; gap: 10px; align-items: baseline; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::before { content: '+'; color: var(--brand-ink); font-weight: 800; width: 1ch; flex: none; }
+.faq[open] summary::before { content: '–'; }
+.faq p { margin: 10px 0 0; color: var(--muted); max-width: 72ch; }
+
+.other { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+.other .pill { text-decoration: none; padding: 8px 16px; }
+
+@media (max-width: 900px) {
+  .hero { grid-template-columns: 1fr; }
+  .hero-main { padding: 32px 24px; }
+}
 </style>

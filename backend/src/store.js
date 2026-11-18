@@ -6,10 +6,14 @@ import { join } from 'node:path';
 
 const SESSION_TTL_MS = 24 * 60 * 60 * 1000;
 const MAX_RESULTS_PER_CLIENT = 200;
+// Client ids are self-chosen, so a per-client cap alone can't bound the file:
+// drop the oldest results store-wide past this many (each save rewrites the file).
+export const MAX_RESULTS_TOTAL = 20000;
 
 export class Store {
-  constructor(dir) {
+  constructor(dir, { maxTotal = MAX_RESULTS_TOTAL } = {}) {
     this.dir = dir;
+    this.maxTotal = maxTotal;
     if (dir) mkdirSync(dir, { recursive: true });
     this.sessions = new Map(this.#load('sessions.json').map((s) => [s.id, s]));
     this.results = new Map(this.#load('results.json').map((r) => [r.id, r]));
@@ -64,6 +68,11 @@ export class Store {
     this.results.set(result.id, result);
     const mine = this.listResults(result.clientId);
     for (const old of mine.slice(MAX_RESULTS_PER_CLIENT)) this.results.delete(old.id);
+    // Map keeps insertion order, so the first keys are the oldest results.
+    for (const id of this.results.keys()) {
+      if (this.results.size <= this.maxTotal) break;
+      this.results.delete(id);
+    }
     this.#save('results.json', this.results);
   }
 
