@@ -58,10 +58,12 @@ const topicStanding = computed(() => {
   return { strong: ranked.find((a) => a.pct >= pass) ?? null, weak: [...ranked].reverse().find((a) => a.pct < pass) ?? null };
 });
 
+// Bump CLIP_VERSION whenever the clips are re-recorded so browsers don't show cached ones.
+const CLIP_VERSION = 'a1';
 const clips = [
-  { src: '/media/practice.webm', title: 'Practice by topic', text: 'Answer a question and see why every option is right or wrong, with the law it comes from.' },
-  { src: '/media/mock.webm', title: 'Take a timed mock', text: 'Your state\'s exam format with a real countdown, flags for review and auto-submit.' },
-  { src: '/media/review.webm', title: 'Review and improve', text: 'Score by topic, a full answer review and a PDF report to study from.' },
+  { src: `/media/practice.webm?v=${CLIP_VERSION}`, title: 'Practice by topic', text: 'Answer a question and see why every option is right or wrong, with the law it comes from.' },
+  { src: `/media/mock.webm?v=${CLIP_VERSION}`, title: 'Take a timed mock', text: 'Your state\'s exam format with a real countdown, flags for review and auto-submit.' },
+  { src: `/media/review.webm?v=${CLIP_VERSION}`, title: 'Review and improve', text: 'Score by topic, a full answer review and a PDF report to study from.' },
 ];
 
 async function quickRound() {
@@ -82,40 +84,45 @@ const practiceTopic = (id) => router.push({ name: 'practice', query: { topics: i
   <div class="container page home">
     <Message v-if="error" severity="error" :closable="false">{{ error }}</Message>
 
-    <section class="hero">
+    <section class="hero surface">
       <div class="hero-main">
-        <span class="free-pill">Free · no sign-up</span>
-        <h1 v-if="current">Get ready to become a {{ current.name }} notary</h1>
-        <h1 v-else>Get ready to become a notary public</h1>
+        <span class="eyebrow gold">{{ current ? `${current.name} notary public · ${current.questionCount} practice questions` : 'Notary public exam prep' }}</span>
+        <h1 v-if="current">Study for your {{ current.name }} notary commission with answers you can trust.</h1>
+        <h1 v-else>Study for your notary commission with answers you can trust.</h1>
         <p class="lead" v-if="current">
-          {{ current.questionCount }} practice questions with an explanation for every answer, cited to {{ current.name }} law.
-          Short rounds, timed mocks, and your progress saved on this device.
+          Every practice question is explained option by option and cited to {{ current.name }} law and official guidance. Free, with no sign-up.
         </p>
         <div class="hero-actions">
-          <Button label="Start a 10-question round" class="cta-light" :loading="starting" :disabled="!current" @click="quickRound" />
-          <Button label="Try a mock exam" class="cta-ghost" @click="router.push('/mock')" />
-        </div>
-        <div v-if="current" class="facts">
-          <span><b>{{ current.mock.questions }}</b> question mock</span>
-          <span><b>{{ current.mock.minutes }}</b> minutes</span>
-          <span><b>{{ current.mock.passPercent }}%</b> to pass</span>
-          <span><b>{{ current.topics.length }}</b> topics</span>
+          <Button label="Start a 10-question round" :loading="starting" :disabled="!current" @click="quickRound" />
+          <RouterLink to="/mock" class="text-cta">Take a timed mock exam <i class="pi pi-arrow-right" /></RouterLink>
         </div>
       </div>
 
-      <aside class="surface ready" aria-labelledby="ready-title">
-        <ReadinessRing :percent="readiness" label="Your readiness" />
-        <h2 id="ready-title" class="section-title">Your readiness</h2>
-        <template v-if="readiness !== null">
-          <p class="small muted center">From your last {{ Math.min(mine.length, 5) }} {{ mine.length === 1 ? 'test' : 'tests' }} in {{ current?.name }}.</p>
-          <div class="row center-row">
-            <span v-if="topicStanding.strong" class="pill ok"><i class="pi pi-check" /> Strong: {{ topicStanding.strong.name }}</span>
-            <button v-if="topicStanding.weak" class="pill bad as-btn" @click="practiceTopic(topicStanding.weak.id)">
-              <i class="pi pi-arrow-right" /> Practice: {{ topicStanding.weak.name }}
-            </button>
+      <aside v-if="current" class="glance" aria-labelledby="glance-title">
+        <span id="glance-title" class="eyebrow">Your exam at a glance</span>
+        <div class="glance-grid">
+          <div class="stat"><span class="value">{{ current.mock.questions }}</span><span class="label">questions in the mock</span></div>
+          <div class="stat"><span class="value">{{ current.mock.minutes }} min</span><span class="label">time limit</span></div>
+          <div class="stat"><span class="value">{{ current.mock.passPercent }}%</span><span class="label">to pass</span></div>
+          <div class="stat"><span class="value">{{ current.topics.length }}</span><span class="label">topics covered</span></div>
+        </div>
+        <p class="glance-source small muted"><i class="pi pi-book" /> Source: {{ current.authority }}</p>
+        <div class="ready">
+          <ReadinessRing :percent="readiness" :size="72" label="Your readiness" />
+          <div class="ready-text">
+            <span class="ready-title">Your readiness</span>
+            <template v-if="readiness !== null">
+              <span class="small muted">From your last {{ Math.min(mine.length, 5) }} {{ mine.length === 1 ? 'test' : 'tests' }}.</span>
+              <div class="row ready-pills">
+                <span v-if="topicStanding.strong" class="pill ok"><i class="pi pi-check" /> Strong: {{ topicStanding.strong.name }}</span>
+                <button v-if="topicStanding.weak" class="pill bad as-btn" @click="practiceTopic(topicStanding.weak.id)">
+                  <i class="pi pi-arrow-right" /> Practice: {{ topicStanding.weak.name }}
+                </button>
+              </div>
+            </template>
+            <span v-else class="small muted">Finish a practice round to see your readiness and weakest topic.</span>
           </div>
-        </template>
-        <p v-else class="small muted center">Finish a practice round and your readiness and weakest topic show up here.</p>
+        </div>
       </aside>
     </section>
 
@@ -193,42 +200,44 @@ const practiceTopic = (id) => router.push({ name: 'practice', query: { topics: i
 
 <style scoped>
 .home { display: flex; flex-direction: column; gap: 28px; padding-top: 12px; }
-.hero { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 24px; }
-.hero-main { background: var(--hero); color: var(--on-hero); border-radius: var(--radius-lg); padding: 48px; display: flex; flex-direction: column; gap: 20px; }
-.free-pill { align-self: flex-start; background: color-mix(in srgb, var(--on-hero) 18%, transparent); border-radius: 999px; padding: 6px 14px; font-size: 0.82rem; font-weight: 700; }
-.hero h1 { font-size: clamp(2rem, 4.4vw, 3rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.06; }
-.lead { margin: 0; font-size: 1.1rem; color: var(--on-hero-muted); max-width: 560px; }
-.hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
-.hero-actions :deep(.p-button) { border-radius: 16px; padding: 14px 24px; font-weight: 800; font-size: 1rem; }
-.cta-light { background: var(--on-hero) !important; color: var(--hero) !important; border-color: var(--on-hero) !important; }
-.cta-ghost { background: color-mix(in srgb, var(--on-hero) 14%, transparent) !important; color: var(--on-hero) !important; border-color: transparent !important; }
-.facts { display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: 0.92rem; color: var(--on-hero-muted); padding-top: 18px; border-top: 1px solid color-mix(in srgb, var(--on-hero) 22%, transparent); }
-.facts b { color: var(--on-hero); font-size: 1.05rem; }
+.hero { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 48px; align-items: center; padding: 48px; }
+.hero-main { display: flex; flex-direction: column; gap: 20px; }
+.hero h1 { font-size: clamp(2rem, 4vw, 2.9rem); line-height: 1.1; letter-spacing: -0.015em; }
+.lead { margin: 0; font-size: 1.1rem; color: var(--muted); max-width: 56ch; }
+.hero-actions { display: flex; gap: 20px; flex-wrap: wrap; align-items: center; }
+.hero-actions :deep(.p-button) { border-radius: 6px; padding: 14px 24px; font-weight: 600; font-size: 1rem; }
+.text-cta { font-weight: 600; text-decoration: none; display: inline-flex; gap: 8px; align-items: center; }
+.text-cta:hover { text-decoration: underline; }
+.text-cta .pi { font-size: 0.8rem; }
 
-.ready { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; text-align: center; border-radius: var(--radius-lg); }
-.center { margin: 0; max-width: 280px; }
-.center-row { justify-content: center; }
-.as-btn { border: 0; font: inherit; font-size: 0.82rem; font-weight: 700; cursor: pointer; }
+.glance { background: var(--card-2); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+.glance-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.glance-source { margin: 0; padding-top: 12px; border-top: 1px solid var(--line); display: flex; gap: 6px; align-items: center; }
+.ready { display: flex; gap: 14px; align-items: center; padding-top: 14px; border-top: 1px solid var(--line); }
+.ready-text { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.ready-title { font-weight: 700; }
+.ready-pills { gap: 6px; margin-top: 4px; }
+.as-btn { border: 0; font: inherit; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
 
-.h2 { font-size: 1.35rem; font-weight: 800; margin-top: 4px; }
+.h2 { font-size: 1.5rem; margin-top: 4px; }
 .how { display: flex; flex-direction: column; gap: 16px; }
 .clip { padding: 0; overflow: hidden; margin: 0; display: flex; flex-direction: column; }
 .clip video { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; object-position: top; background: var(--card-2); display: block; border-bottom: 1px solid var(--line); }
 .clip figcaption { padding: 18px 20px 20px; }
-.clip h3 { font-size: 1.05rem; font-weight: 800; }
+.clip h3 { font-size: 1.15rem; }
 .clip p { margin: 6px 0 0; }
 
 .head-row { margin-bottom: 16px; }
 .topics { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
 .topic {
   display: flex; flex-direction: column; gap: 6px; text-align: left; font: inherit; color: inherit;
-  border: 2px solid var(--line); border-radius: 16px; background: var(--card); padding: 16px; cursor: pointer;
+  border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--card); padding: 16px; cursor: pointer;
   transition: border-color 0.12s, background 0.12s;
 }
 .topic:hover { border-color: var(--brand); background: var(--brand-soft); }
-.t-name { font-weight: 800; }
+.t-name { font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; }
 .t-desc { font-size: 0.85rem; color: var(--muted); flex: 1; }
-.t-count { font-size: 0.8rem; color: var(--brand-ink); font-weight: 700; display: flex; align-items: center; gap: 6px; }
+.t-count { font-size: 0.8rem; color: var(--brand-ink); font-weight: 600; display: flex; align-items: center; gap: 6px; }
 .t-count .pi { font-size: 0.7rem; }
 
 .recent { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); text-decoration: none; color: inherit; }
@@ -244,17 +253,16 @@ const practiceTopic = (id) => router.push({ name: 'practice', query: { topics: i
   .faq-section { grid-template-columns: 1fr; gap: 16px; }
   .faq-intro { position: static; }
 }
-.faq summary { cursor: pointer; font-weight: 700; list-style: none; display: flex; gap: 10px; align-items: baseline; }
+.faq summary { cursor: pointer; font-weight: 600; list-style: none; display: flex; gap: 10px; align-items: baseline; }
 .faq summary::-webkit-details-marker { display: none; }
-.faq summary::before { content: '+'; color: var(--brand-ink); font-weight: 800; width: 1ch; flex: none; }
+.faq summary::before { content: '+'; color: var(--gold-ink); font-weight: 700; width: 1ch; flex: none; }
 .faq[open] summary::before { content: '–'; }
 .faq p { margin: 10px 0 0; padding-left: calc(1ch + 10px); color: var(--muted); max-width: 72ch; } /* lines up with the question text */
 
 .other { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
-.other .pill { text-decoration: none; padding: 8px 16px; }
+.other .pill { text-decoration: none; padding: 7px 14px; }
 
 @media (max-width: 900px) {
-  .hero { grid-template-columns: 1fr; }
-  .hero-main { padding: 32px 24px; }
+  .hero { grid-template-columns: 1fr; gap: 28px; padding: 28px 20px; }
 }
 </style>

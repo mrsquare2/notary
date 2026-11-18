@@ -32,7 +32,7 @@ function pickState(code) {
       <div class="bar">
         <RouterLink :to="current ? `/${current.slug}` : '/'" class="brand" :aria-label="`${BRAND} home`">
           <span class="mark" aria-hidden="true">
-            <svg viewBox="0 0 20 20"><path d="M10 3l2 4.3 4.7.5-3.5 3.2 1 4.6L10 13.2l-4.2 2.4 1-4.6L3.3 7.8 8 7.3z" fill="currentColor" /></svg>
+            <svg viewBox="0 0 30 30"><circle cx="15" cy="15" r="13.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2 2" /><circle cx="15" cy="15" r="9.5" fill="none" stroke="currentColor" stroke-width="1.5" /><path d="M15 9.5l1.6 3.4 3.7.4-2.8 2.5.8 3.7-3.3-1.9-3.3 1.9.8-3.7-2.8-2.5 3.7-.4z" fill="currentColor" /></svg>
           </span>
           <span class="name">{{ BRAND }}</span>
         </RouterLink>
@@ -95,22 +95,23 @@ function pickState(code) {
 </template>
 
 <style scoped>
-.skip { position: absolute; left: -9999px; top: 8px; background: var(--card); padding: 8px 14px; border-radius: 10px; z-index: 50; }
+.skip { position: absolute; left: -9999px; top: 8px; background: var(--card); padding: 8px 14px; border-radius: 6px; z-index: 50; }
 .skip:focus { left: 16px; }
-.topbar { position: sticky; top: 0; z-index: 20; padding: 14px 0; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); }
-.bar { display: flex; align-items: center; gap: 24px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 14px 10px 18px; box-shadow: var(--shadow); }
-.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); }
-.mark { width: 36px; height: 36px; border-radius: 12px; background: var(--brand); color: var(--on-brand); display: grid; place-items: center; }
-.mark svg { width: 20px; height: 20px; }
-.name { font-size: 1.15rem; font-weight: 800; letter-spacing: -0.02em; }
-.nav { display: flex; gap: 4px; }
-.nav a { text-decoration: none; padding: 9px 16px; border-radius: 999px; color: var(--muted); font-weight: 600; font-size: 0.95rem; }
-.nav a:hover { color: var(--ink); background: var(--card-2); }
-.nav a.router-link-active { color: var(--brand-ink); background: var(--brand-soft); }
-.state-select { min-width: 170px; border-radius: 999px; }
+.topbar { position: sticky; top: 0; z-index: 20; background: var(--header); color: var(--on-header); border-bottom: 2px solid var(--gold); }
+.bar { display: flex; align-items: center; gap: 36px; height: 68px; }
+.brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--on-header); }
+.mark { width: 30px; height: 30px; color: var(--gold); display: grid; }
+.name { font-family: var(--font-display); font-size: 1.3rem; font-weight: 700; letter-spacing: -0.01em; }
+.nav { display: flex; gap: 26px; align-self: stretch; }
+.nav a { text-decoration: none; color: var(--on-header-muted); font-weight: 500; font-size: 0.95rem; display: flex; align-items: center; border-bottom: 2px solid transparent; margin-bottom: -2px; }
+.nav a:hover { color: var(--on-header); }
+.nav a.router-link-active { color: var(--on-header); border-bottom-color: var(--gold); }
+.state-select { min-width: 170px; }
+.topbar .pill { background: transparent; color: var(--on-header); border: 1px solid var(--on-header-muted); }
 
 .footer { margin-top: 24px; border-top: 1px solid var(--line); padding: 40px 0 32px; background: var(--card); }
 .foot { display: grid; grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(0, 1fr)); gap: 32px; }
+.foot .name { color: var(--ink); }
 .foot-brand p { margin: 6px 0 0; max-width: 340px; }
 .foot-links { display: flex; flex-direction: column; gap: 8px; }
 .foot-links a { color: var(--ink); text-decoration: none; font-size: 0.92rem; }
@@ -118,10 +119,11 @@ function pickState(code) {
 .legal { margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--line); }
 
 @media (max-width: 760px) {
-  .bar { flex-wrap: wrap; gap: 10px 12px; }
-  .nav { order: 3; width: 100%; overflow-x: auto; }
-  .state-select { min-width: 0; }
   .topbar { position: static; }
+  .bar { height: auto; flex-wrap: wrap; gap: 8px 14px; padding: 12px 0; }
+  .nav { order: 3; width: 100%; overflow-x: auto; overflow-y: hidden; gap: 20px; }
+  .nav a { padding: 6px 0; margin-bottom: 0; }
+  .state-select { min-width: 0; }
   .foot { grid-template-columns: 1fr; gap: 24px; }
 }
 </style>

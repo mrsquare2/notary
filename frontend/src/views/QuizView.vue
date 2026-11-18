@@ -305,15 +305,15 @@ function onKey(e) {
 
 <style scoped>
 .quiz { display: flex; flex-direction: column; gap: 16px; }
-.head { padding: 16px 22px; display: flex; flex-direction: column; gap: 10px; position: sticky; top: 92px; z-index: 5; }
+.head { padding: 16px 22px; display: flex; flex-direction: column; gap: 10px; position: sticky; top: 86px; z-index: 5; }
 .progress-row { margin-bottom: -4px; }
-.clock { font-variant-numeric: tabular-nums; font-weight: 800; font-size: 1.15rem; padding: 4px 14px; border-radius: 999px; background: var(--brand-soft); color: var(--brand-ink); }
+.clock { font-variant-numeric: tabular-nums; font-weight: 800; font-size: 1.15rem; padding: 4px 12px; border-radius: 6px; background: var(--brand-soft); color: var(--brand-ink); }
 .clock.low { background: var(--bad-bg); color: var(--bad); animation: pulse 1.2s ease-in-out infinite; }
 @keyframes pulse { 50% { opacity: 0.65; } }
 @media (prefers-reduced-motion: reduce) { .clock.low { animation: none; } }
 
 .body { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 20px; align-items: start; }
-.qtext { font-size: 1.4rem; font-weight: 800; margin: 0 0 20px; line-height: 1.35; letter-spacing: -0.015em; }
+.qtext { font-family: var(--font-display); font-size: 1.55rem; font-weight: 600; margin: 0 0 20px; line-height: 1.3; }
 .feedback { margin-top: 18px; display: flex; flex-direction: column; gap: 10px; }
 .verdict { font-weight: 700; display: flex; align-items: center; gap: 8px; }
 .verdict.ok { color: var(--ok); }
@@ -321,7 +321,7 @@ function onKey(e) {
 .actions { margin-top: 22px; }
 .keys { margin: 14px 0 0; }
 
-.nav { position: sticky; top: 240px; padding: 18px; }
+.nav { position: sticky; top: 232px; padding: 18px; }
 .nav-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
 .nav-btn {
   font: inherit; font-size: 0.82rem; font-weight: 600; height: 34px; border-radius: 8px; cursor: pointer;

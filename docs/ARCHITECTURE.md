@@ -39,7 +39,7 @@ frontend/src/
   brand.js                product name (one place) and page titles
   utils/                  pdf.js, format helpers, active-mock memory
 frontend/public/
-  fonts/                  self-hosted Plus Jakarta Sans (OFL licence alongside)
+  fonts/                  self-hosted Source Serif 4 and Public Sans (OFL licences alongside)
   media/                  landing-page clips (.webm) and posters (.jpg), recorded from the real app
 ```
 

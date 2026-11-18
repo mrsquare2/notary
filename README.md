@@ -48,7 +48,7 @@ backend/
   test/            node:test suites (bank, api, seo, store)
 frontend/
   index.html       page shell; the server fills in each page's <head> and readable content
-  public/fonts/    self-hosted Plus Jakarta Sans + its OFL licence
+  public/fonts/    self-hosted Source Serif 4 + Public Sans, with their OFL licences
   public/media/    landing-page clips (.webm) and poster images, recorded from the real app
   src/brand.js     product name (one place) and page titles
   src/style.css    design tokens (light + dark) and shared styles

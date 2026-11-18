@@ -1,39 +1,49 @@
-/* Direction B, "friendly learning app". See docs/DESIGN-SYSTEM.md for the token table. */
+/* Direction A, "trusted study tool". See docs/DESIGN-SYSTEM.md for the token table. */
 @font-face {
-  font-family: 'Plus Jakarta Sans';
+  font-family: 'Public Sans';
   font-style: normal;
-  font-weight: 400 800;
+  font-weight: 400 700;
   font-display: swap;
-  src: url('/fonts/PlusJakartaSans-latin.woff2') format('woff2');
+  src: url('/fonts/PublicSans-latin.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Source Serif 4';
+  font-style: normal;
+  font-weight: 500 700;
+  font-display: swap;
+  src: url('/fonts/SourceSerif4-latin.woff2') format('woff2');
 }
 
 :root {
-  --bg: #f4f3ff;
+  --bg: #f6f7fa;
   --card: #ffffff;
-  --card-2: #f8f7ff;
-  --ink: #1e1b3a;
-  --muted: #5d5a7a;
-  --line: #e6e4f5;
-  --brand: #5b4bf5;
-  --brand-soft: #ecebff;
-  --brand-ink: #4338ca;
+  --card-2: #f3f5f9;
+  --ink: #1b2233;
+  --muted: #576074;
+  --line: #e1e5ee;
+  --brand: #1d3a8a;
+  --brand-soft: #eef1f8;
+  --brand-ink: #1d3a8a;
   --on-brand: #ffffff;
-  --on-brand-muted: #e3e0ff;
-  --hero: #5b4bf5;
-  --on-hero: #ffffff;
-  --on-hero-muted: #e3e0ff;
-  --ok: #0f766e;
-  --ok-bg: #e6fbf8;
-  --ok-line: #99e6dc;
-  --bad: #c2410c;
-  --bad-bg: #fff1e6;
-  --bad-line: #fdc9a4;
-  --flag: #b45309;
-  --shadow: 0 1px 2px rgba(30, 27, 58, 0.04), 0 8px 24px rgba(30, 27, 58, 0.06);
-  --radius-sm: 12px;
-  --radius: 20px;
-  --radius-lg: 28px;
-  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --on-brand-muted: #c9d3ee;
+  --header: #13203f;
+  --on-header: #e9edf7;
+  --on-header-muted: #aab4cf;
+  --gold: #b58a2a;
+  --gold-ink: #85651a;
+  --ok: #2f7a4f;
+  --ok-bg: #f0f7f2;
+  --ok-line: #a9d3b8;
+  --bad: #a33a3a;
+  --bad-bg: #fbf1f1;
+  --bad-line: #e6b3b3;
+  --flag: #a15c07;
+  --shadow: 0 1px 2px rgba(19, 32, 63, 0.05);
+  --radius-sm: 8px;
+  --radius: 10px;
+  --radius-lg: 12px;
+  --font-display: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  font-family: 'Public Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   color: var(--ink);
   -webkit-font-smoothing: antialiased;
   color-scheme: light;
@@ -41,41 +51,43 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #12111f;
-    --card: #1c1a30;
-    --card-2: #23213b;
-    --ink: #ecebff;
-    --muted: #a9a6c8;
-    --line: #2f2c4b;
-    --brand: #8c7ffa;
-    --brand-soft: #2a2650;
-    --brand-ink: #c4bdff;
-    --on-brand: #12111f;
-    --on-brand-muted: #2a2650;
-    --hero: #3d31b8;
-    --on-hero: #ffffff;
-    --on-hero-muted: #d9d6fe;
-    --ok: #5eead4;
-    --ok-bg: #10302c;
-    --ok-line: #1f5c54;
-    --bad: #fdba74;
-    --bad-bg: #36220f;
-    --bad-line: #6b4220;
-    --flag: #fbbf24;
-    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.25);
+    --bg: #0d1322;
+    --card: #141c31;
+    --card-2: #1a243e;
+    --ink: #e6eaf4;
+    --muted: #9ea8c0;
+    --line: #26304a;
+    --brand: #8fa8ff;
+    --brand-soft: #1d2a4d;
+    --brand-ink: #c3d0ff;
+    --on-brand: #0d1322;
+    --on-brand-muted: #1d2a4d;
+    --header: #0a1020;
+    --on-header: #e9edf7;
+    --on-header-muted: #9ea8c0;
+    --gold: #e0bd6a;
+    --gold-ink: #e0bd6a;
+    --ok: #82d3a4;
+    --ok-bg: #12271c;
+    --ok-line: #24513a;
+    --bad: #f29b9b;
+    --bad-bg: #2d1718;
+    --bad-line: #5c2d2f;
+    --flag: #f2b34b;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     color-scheme: dark;
   }
 }
 
 * { box-sizing: border-box; }
 html, body { margin: 0; background: var(--bg); }
-body { min-height: 100vh; line-height: 1.55; }
+body { min-height: 100vh; line-height: 1.6; }
 a { color: var(--brand-ink); }
-h1, h2, h3 { line-height: 1.15; margin: 0; letter-spacing: -0.02em; text-wrap: balance; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 700; line-height: 1.15; margin: 0; letter-spacing: -0.01em; text-wrap: balance; color: var(--ink); }
 :focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; }
 
 .container { width: 100%; max-width: 1120px; margin: 0 auto; padding: 0 16px; }
-.page { padding: 28px 0 72px; }
+.page { padding: 32px 0 72px; }
 
 .surface {
   background: var(--card);
@@ -86,17 +98,18 @@ h1, h2, h3 { line-height: 1.15; margin: 0; letter-spacing: -0.02em; text-wrap: b
 }
 
 .eyebrow {
-  font-size: 0.78rem;
+  font-size: 0.74rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--muted);
 }
+.eyebrow.gold { color: var(--gold-ink); }
 
 .pill {
   display: inline-flex; align-items: center; gap: 6px;
-  border-radius: 999px; padding: 5px 12px;
-  font-size: 0.82rem; font-weight: 700;
+  border-radius: 4px; padding: 3px 10px;
+  font-size: 0.8rem; font-weight: 600;
   background: var(--brand-soft); color: var(--brand-ink);
 }
 .pill.ok { background: var(--ok-bg); color: var(--ok); }
@@ -114,11 +127,11 @@ h1, h2, h3 { line-height: 1.15; margin: 0; letter-spacing: -0.02em; text-wrap: b
   .surface { padding: 20px; }
 }
 
-.page-title { font-size: clamp(1.6rem, 3.4vw, 2rem); font-weight: 800; margin: 6px 0 8px; }
-.section-title { font-size: 1.2rem; font-weight: 700; }
+.page-title { font-size: clamp(1.7rem, 3.4vw, 2.2rem); margin: 6px 0 8px; }
+.section-title { font-size: 1.25rem; }
 
 .stat { display: flex; flex-direction: column; gap: 2px; }
-.stat .value { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.stat .value { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; font-variant-numeric: tabular-nums; }
 .stat .label { font-size: 0.82rem; color: var(--muted); }
 
 /* Answer option tiles, shared by quiz and review */
@@ -128,10 +141,10 @@ h1, h2, h3 { line-height: 1.15; margin: 0; letter-spacing: -0.02em; text-wrap: b
   align-items: flex-start;
   gap: 14px;
   width: 100%;
-  min-height: 56px;
+  min-height: 52px;
   text-align: left;
-  padding: 14px 16px;
-  border: 2px solid var(--line);
+  padding: 14px 18px;
+  border: 1.5px solid var(--line);
   border-radius: var(--radius-sm);
   background: var(--card);
   font: inherit;
@@ -143,20 +156,20 @@ h1, h2, h3 { line-height: 1.15; margin: 0; letter-spacing: -0.02em; text-wrap: b
 .option:disabled { cursor: default; }
 .option .letter {
   flex: none;
-  width: 30px;
-  height: 30px;
-  border-radius: 10px;
+  width: 26px;
+  height: 26px;
+  border-radius: 4px;
   display: grid;
   place-items: center;
-  font-weight: 800;
-  font-size: 0.85rem;
+  font-weight: 700;
+  font-size: 0.82rem;
   background: var(--card-2);
   border: 1px solid var(--line);
   color: var(--muted);
 }
-.option .text { flex: 1; padding-top: 3px; font-weight: 600; min-width: 0; }
-.option .mark { flex: none; padding-top: 5px; }
-.option .why { display: block; margin-top: 4px; font-size: 0.86rem; line-height: 1.45; color: var(--muted); font-weight: 500; }
+.option .text { flex: 1; padding-top: 1px; font-weight: 600; min-width: 0; }
+.option .mark { flex: none; padding-top: 3px; }
+.option .why { display: block; margin-top: 4px; font-size: 0.875rem; line-height: 1.5; color: var(--muted); font-weight: 400; }
 .option.selected { border-color: var(--brand); background: var(--brand-soft); }
 .option.selected .letter { background: var(--brand); border-color: var(--brand); color: var(--on-brand); }
 .option.correct { border-color: var(--ok); background: var(--ok-bg); }
@@ -169,12 +182,13 @@ h1, h2, h3 { line-height: 1.15; margin: 0; letter-spacing: -0.02em; text-wrap: b
 .explain {
   background: var(--card-2);
   border: 1px solid var(--line);
+  border-left: 3px solid var(--gold);
   border-radius: var(--radius-sm);
   padding: 14px 18px;
 }
-.explain .source { font-size: 0.82rem; color: var(--muted); margin-top: 8px; display: flex; gap: 6px; align-items: center; }
+.explain .source { font-size: 0.82rem; color: var(--gold-ink); margin-top: 8px; display: flex; gap: 6px; align-items: center; font-weight: 600; }
 
-.difficulty { padding: 2px 10px; border-radius: 999px; font-size: 0.74rem; font-weight: 700; text-transform: capitalize; background: var(--brand-soft); color: var(--brand-ink); }
+.difficulty { padding: 1px 8px; border-radius: 4px; font-size: 0.74rem; font-weight: 600; text-transform: capitalize; background: var(--brand-soft); color: var(--brand-ink); }
 .difficulty.easy { background: var(--ok-bg); color: var(--ok); }
 .difficulty.hard { background: var(--bad-bg); color: var(--bad); }
 

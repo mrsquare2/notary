@@ -111,14 +111,14 @@ async function start() {
 @media (max-width: 860px) { .layout { grid-template-columns: 1fr; } }
 .h2 { font-size: 1.2rem; font-weight: 800; }
 .topic-list { display: grid; gap: 8px; }
-.topic { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border: 2px solid var(--line); border-radius: 16px; cursor: pointer; background: var(--card); }
+.topic { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--radius-sm); cursor: pointer; background: var(--card); }
 .topic:hover { border-color: var(--brand); }
 .topic.on { border-color: var(--brand); background: var(--brand-soft); }
 .t-body { display: flex; flex-direction: column; flex: 1; }
 .t-name { font-weight: 700; }
 .t-desc { font-size: 0.82rem; color: var(--muted); }
 .t-count { font-size: 0.8rem; font-weight: 600; color: var(--muted); background: var(--card-2); border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; }
-.side { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 100px; }
+.side { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 92px; }
 .label { margin-bottom: 6px; }
 .summary { display: flex; flex-direction: column; gap: 6px; padding: 12px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 </style>

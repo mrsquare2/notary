@@ -26,7 +26,7 @@ Note on states: New York and California give a state exam. Texas and Florida do 
 8. **Planned: admin screen.** One admin can sign in and add, edit or retire questions, topics and state settings in the database, and export the bank as JSON for backup and review.
 9. **Planned: usage page (admin only).** Unique browsers, tests started, mocks completed and pass rate per state, by day, week and month, counted from the anonymous browser IDs. These are estimates: one person on two devices counts twice.
 10. **Planned:** store sessions and results in the database (MySQL in production) instead of JSON files, so they survive redeploys.
-11. **Look and feel:** direction B, "friendly learning app" (see `docs/DESIGN-SYSTEM.md`), in light and dark themes that follow the device setting.
+11. **Look and feel:** direction A, "trusted study tool" (see `docs/DESIGN-SYSTEM.md`), in light and dark themes that follow the device setting. (Direction B lives on `main`; this branch is the alternative for comparison.)
 12. **Landing page:** a state-aware home page with a readiness summary built from the learner's own results, a how-it-works section with short silent screen-recorded clips of the real app, a FAQ about the state's exam, and links to every state page. Texas and Florida copy must say plainly that those states have no state exam.
 13. **Search foundation:** one page per state (`/texas`, `/new-york`, `/california`, `/florida`). The server sends each page its own title, description, canonical link, FAQ structured data and readable HTML content before the app loads, plus `robots.txt` and `sitemap.xml`. Per-learner pages (quiz, results, history) are kept out of search.
 

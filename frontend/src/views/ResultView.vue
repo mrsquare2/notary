@@ -195,9 +195,9 @@ function optClass(q, opt) {
   background: conic-gradient(var(--col) calc(var(--pct) * 1%), var(--brand-soft) 0);
 }
 .ring-inner { width: 134px; height: 134px; border-radius: 50%; background: var(--card); display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.pct { font-size: 2.2rem; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.pct { font-family: var(--font-display); font-size: 2.3rem; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
 .hero-body { display: flex; flex-direction: column; gap: 12px; flex: 1; min-width: 0; }
-.verdict { font-size: 1.9rem; font-weight: 800; display: flex; align-items: center; gap: 10px; }
+.verdict { font-size: 2rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
 .verdict.ok { color: var(--ok); }
 .verdict.bad { color: var(--bad); }
 .stats { padding: 12px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
@@ -210,7 +210,7 @@ function optClass(q, opt) {
 .bar.good :deep(.p-progressbar-value) { background: var(--ok); }
 .bar.weak :deep(.p-progressbar-value) { background: var(--bad); }
 .review { padding: 18px 0; border-top: 1px solid var(--line); }
-.num { width: 30px; height: 30px; border-radius: 10px; background: var(--brand); color: var(--on-brand); display: grid; place-items: center; font-size: 0.8rem; font-weight: 700; }
+.num { width: 28px; height: 28px; border-radius: 50%; background: var(--brand); color: var(--on-brand); display: grid; place-items: center; font-size: 0.8rem; font-weight: 700; }
 .qtext { font-weight: 600; margin: 0 0 12px; }
 .option { cursor: default; }
 .option .mark { color: var(--muted); font-weight: 600; }

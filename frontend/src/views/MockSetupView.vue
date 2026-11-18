@@ -87,5 +87,5 @@ async function start() {
 .h2 { font-size: 1.2rem; font-weight: 800; margin-bottom: 8px; }
 .rules { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
 .side { display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; }
-.big { font-size: 2.2rem; color: var(--brand-ink); background: var(--brand-soft); padding: 20px; border-radius: 24px; }
+.big { font-size: 2.2rem; color: var(--brand-ink); background: var(--brand-soft); padding: 20px; border-radius: 50%; }
 </style>
