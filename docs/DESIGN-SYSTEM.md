@@ -15,12 +15,12 @@ Direction A, "trusted study tool": calm and credible, like a licensing-exam prod
 | `--brand` | #1d3a8a | #8fa8ff | Primary actions, selection, progress |
 | `--brand-soft` / `--brand-ink` | #eef1f8 / #1d3a8a | #1d2a4d / #c3d0ff | Selected states, tags |
 | `--header` | #13203f | #0a1020 | Top bar (with a 2px gold rule) |
-| `--gold` / `--gold-ink` | #b58a2a / #85651a | #e0bd6a / #e0bd6a | Seal, eyebrow labels, citation lines, active nav underline |
+| `--gold` / `--gold-ink` | #b58a2a / #85651a | #e0bd6a / #e0bd6a | Seal, eyebrow labels, citation text, active nav underline |
 | `--ok` / `--ok-bg` | #2f7a4f / #f0f7f2 | #82d3a4 / #12271c | Correct, pass, "easy" |
 | `--bad` / `--bad-bg` | #a33a3a / #fbf1f1 | #f29b9b / #2d1718 | Incorrect, fail, "hard" |
 | `--flag` | #a15c07 | #f2b34b | Flagged for review |
 
-Right and wrong always come with an icon or a text label, never color alone. Gold is an accent only (seal, labels, citation rule), never a background.
+Right and wrong always come with an icon or a text label, never color alone. Gold is an accent only (seal, labels, citation text), never a background or a side stripe.
 
 ## Type and shape
 
@@ -34,7 +34,7 @@ Right and wrong always come with an icon or a text label, never color alone. Gol
 - Header: full-width navy bar, gold seal mark, serif wordmark, nav links with a gold underline for the active page.
 - Landing hero: serif headline and a gold eyebrow with the state and question count, a primary button plus a text link, and an "exam at a glance" panel with the mock format, the official source and the learner's readiness.
 - Answer options: `.option` with a square letter badge, the answer, then a `.why` line once revealed. States `.selected`, `.correct`, `.wrong`.
-- Explanations: `.explain` with a gold left rule and the legal citation in gold underneath. Never hide citations.
+- Explanations: `.explain`, a quiet inset panel with the legal citation in gold underneath. Never hide citations.
 - Readiness ring (`ReadinessRing.vue`) only from the learner's own results; an empty state otherwise.
 
 ## Words on screen

@@ -182,7 +182,6 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; line-height: 1.
 .explain {
   background: var(--card-2);
   border: 1px solid var(--line);
-  border-left: 3px solid var(--gold);
   border-radius: var(--radius-sm);
   padding: 14px 18px;
 }
