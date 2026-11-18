@@ -58,10 +58,12 @@ const topicStanding = computed(() => {
   return { strong: ranked.find((a) => a.pct >= pass) ?? null, weak: [...ranked].reverse().find((a) => a.pct < pass) ?? null };
 });
 
+// Bump CLIP_VERSION whenever the clips are re-recorded so browsers don't show cached ones.
+const CLIP_VERSION = 'b1';
 const clips = [
-  { src: '/media/practice.webm', title: 'Practice by topic', text: 'Answer a question and see why every option is right or wrong, with the law it comes from.' },
-  { src: '/media/mock.webm', title: 'Take a timed mock', text: 'Your state\'s exam format with a real countdown, flags for review and auto-submit.' },
-  { src: '/media/review.webm', title: 'Review and improve', text: 'Score by topic, a full answer review and a PDF report to study from.' },
+  { src: `/media/practice.webm?v=${CLIP_VERSION}`, title: 'Practice by topic', text: 'Answer a question and see why every option is right or wrong, with the law it comes from.' },
+  { src: `/media/mock.webm?v=${CLIP_VERSION}`, title: 'Take a timed mock', text: 'Your state\'s exam format with a real countdown, flags for review and auto-submit.' },
+  { src: `/media/review.webm?v=${CLIP_VERSION}`, title: 'Review and improve', text: 'Score by topic, a full answer review and a PDF report to study from.' },
 ];
 
 async function quickRound() {
