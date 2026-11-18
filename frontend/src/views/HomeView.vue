@@ -168,12 +168,18 @@ const practiceTopic = (id) => router.push({ name: 'practice', query: { topics: i
       </RouterLink>
     </section>
 
-    <section v-if="current?.faq?.length" class="surface" aria-labelledby="faq-title">
-      <h2 id="faq-title" class="h2">{{ current.name }} notary exam: common questions</h2>
-      <details v-for="(f, i) in current.faq" :key="i" class="faq" :open="i === 0">
-        <summary>{{ f.q }}</summary>
-        <p>{{ f.a }}</p>
-      </details>
+    <section v-if="current?.faq?.length" class="surface faq-section" aria-labelledby="faq-title">
+      <div class="faq-intro">
+        <span class="eyebrow">FAQ</span>
+        <h2 id="faq-title" class="h2">{{ current.name }} notary exam: common questions</h2>
+        <p class="small muted">Straight answers about the {{ current.name }} commission, this practice test and how your results are kept.</p>
+      </div>
+      <div class="faq-list">
+        <details v-for="(f, i) in current.faq" :key="i" class="faq" :open="i === 0">
+          <summary>{{ f.q }}</summary>
+          <p>{{ f.a }}</p>
+        </details>
+      </div>
     </section>
 
     <nav v-if="states.length > 1" class="other" aria-label="Other states">
@@ -227,13 +233,22 @@ const practiceTopic = (id) => router.push({ name: 'practice', query: { topics: i
 
 .recent { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); text-decoration: none; color: inherit; }
 
-.faq { border-top: 1px solid var(--line); padding: 14px 0; }
-.faq:first-of-type { margin-top: 12px; }
+/* Heading on the left, questions on the right; stacks on narrow screens. */
+.faq-section { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 40px; align-items: start; }
+.faq-intro { display: flex; flex-direction: column; gap: 10px; position: sticky; top: 110px; }
+.faq-intro p { margin: 0; max-width: 32ch; }
+.faq-list { min-width: 0; }
+.faq { border-top: 1px solid var(--line); padding: 16px 0; }
+.faq:first-child { border-top: 0; padding-top: 4px; }
+@media (max-width: 900px) {
+  .faq-section { grid-template-columns: 1fr; gap: 16px; }
+  .faq-intro { position: static; }
+}
 .faq summary { cursor: pointer; font-weight: 700; list-style: none; display: flex; gap: 10px; align-items: baseline; }
 .faq summary::-webkit-details-marker { display: none; }
 .faq summary::before { content: '+'; color: var(--brand-ink); font-weight: 800; width: 1ch; flex: none; }
 .faq[open] summary::before { content: '–'; }
-.faq p { margin: 10px 0 0; color: var(--muted); max-width: 72ch; }
+.faq p { margin: 10px 0 0; padding-left: calc(1ch + 10px); color: var(--muted); max-width: 72ch; } /* lines up with the question text */
 
 .other { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
 .other .pill { text-decoration: none; padding: 8px 16px; }

@@ -20,7 +20,7 @@ npm run db:seed      # copy the JSON question bank into the local SQLite file (b
 npm run dev          # API on :4100, web app on http://localhost:5180 (seeds first)
 ```
 
-Production: `npm run build`, then `npm start` with `NODE_ENV=production` and `DATABASE_URL=mysql://user:pass@host:3306/dbname` (run `npm run db:seed` once against that database). Express serves the built app and the API on port 4100 (set `PORT` to change it). Behind a reverse proxy, set `TRUST_PROXY=1` so rate limits see the real client IP.
+Production: `npm run build`, then `npm start` with `NODE_ENV=production` and `DATABASE_URL=mysql://user:pass@host:3306/dbname` (run `npm run db:seed` once against that database). Express serves the built app and the API on port 4100 (set `PORT` to change it). Behind a reverse proxy, set `TRUST_PROXY=1` (a hop count) so rate limits see the real client IP, and set `SITE_URL=https://yourdomain.com` for canonical links and the sitemap.
 
 The question bank lives in SQLite locally and MySQL in production; the JSON files under `backend/data/states/` are the seed. `sqlite3` builds a native module and is approved in `backend/package.json` → `allowScripts`.
 
@@ -29,20 +29,32 @@ Tests: `npm test`. They check bank validity, the 150+ per-state minimum, difficu
 ## Layout
 
 ```
+AGENTS.md                         start here if you're a coding agent
+docs/                             PRD, architecture, database, design system, security, code style, testing
 backend/
-  data/states/<code>/state.json   state name, topics, mock-exam settings, disclaimer
-  data/states/<code>/<topic>.json questions for that topic
+  data/states/<code>/state.json   state name, topics, mock-exam settings, notes, disclaimer
+  data/states/<code>/<topic>.json questions for that topic (the seed for the database)
+  data/notary.db                  local SQLite bank (created by db:seed, git-ignored)
   data/runtime/                   sessions.json + results.json (created at runtime, git-ignored)
-  src/db.js       SQLite (local) / MySQL (production) behind one small interface
-  src/bank.js     validates the seed, writes it to the DB, loads it back (fails fast on bad data)
-  src/seed.js     npm run db:seed
+  src/db.js        SQLite (local) / MySQL (production) behind one small interface
+  src/bank.js      validates the seed, writes it to the DB, loads it back (fails fast on bad data)
+  src/seed.js      npm run db:seed
+  src/quiz.js      random selection, shuffling, per-topic allocation, grading
   src/ratelimit.js per-IP rate limiting
-  src/quiz.js     random selection, shuffling, per-topic allocation, grading
-  src/store.js    JSON-file persistence (atomic writes)
-  src/app.js      REST API (+ serves frontend/dist in production)
-frontend/src/
-  views/          Home, PracticeSetup, MockSetup, Quiz, Result, History
-  utils/pdf.js    jsPDF + autotable report (lazy-loaded)
+  src/store.js     JSON-file persistence (atomic writes, global results cap)
+  src/seo.js       per-page titles, descriptions, FAQ structured data, robots.txt, sitemap.xml
+  src/app.js       REST API, security headers, serves frontend/dist in production
+  src/server.js    startup: env checks, load the bank, listen
+  test/            node:test suites (bank, api, seo, store)
+frontend/
+  index.html       page shell; the server fills in each page's <head> and readable content
+  public/fonts/    self-hosted Plus Jakarta Sans + its OFL licence
+  public/media/    landing-page clips (.webm) and poster images, recorded from the real app
+  src/brand.js     product name (one place) and page titles
+  src/style.css    design tokens (light + dark) and shared styles
+  src/components/  ReadinessRing
+  src/views/       Home (landing + state pages), PracticeSetup, MockSetup, Quiz, Result, History
+  src/utils/pdf.js jsPDF + autotable report (lazy-loaded)
 ```
 
 ## Question format
