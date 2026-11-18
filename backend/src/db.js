@@ -80,5 +80,13 @@ function schema(dialect) {
       why TEXT NOT NULL,
       PRIMARY KEY (question_id, idx)
     )${opts}`,
+    // Links to the official text behind each answer (statute section, handbook page).
+    `CREATE TABLE IF NOT EXISTS question_refs (
+      question_id VARCHAR(64) NOT NULL,
+      idx INT NOT NULL,
+      title VARCHAR(255) NOT NULL,
+      url VARCHAR(1024) NOT NULL,
+      PRIMARY KEY (question_id, idx)
+    )${opts}`,
   ];
 }

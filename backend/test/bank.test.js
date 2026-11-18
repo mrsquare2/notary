@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readSeedStates, seedStates, seedMissingStates, loadStates, validateState, DIFFICULTIES } from '../src/bank.js';
 import { openDb } from '../src/db.js';
-import { shuffle, allocateByTopic } from '../src/quiz.js';
+import { shuffle, allocateByTopic, feedback } from '../src/quiz.js';
 
 const seed = readSeedStates(); // throws if any bank fails validation
 const states = new Map(seed.map((s) => [s.code, s]));
@@ -68,6 +68,30 @@ test('validator rejects a missing option explanation and a bad difficulty', () =
   const errors = validateState(bad);
   assert.ok(errors.some((e) => e.includes('"why"')));
   assert.ok(errors.some((e) => e.includes('difficulty')));
+});
+
+test('validator rejects refs without a title or an https link', () => {
+  for (const refs of [[], [{ title: 'x', url: 'http://example.gov' }], [{ title: ' ', url: 'https://example.gov' }]]) {
+    const bad = structuredClone(tx);
+    bad.questions[0].refs = refs;
+    assert.ok(validateState(bad).some((e) => e.includes('ref')), JSON.stringify(refs));
+  }
+});
+
+test('refs survive seeding and loading, and reach the learner after answering', async () => {
+  const db = await openDb(':memory:');
+  try {
+    const withRefs = structuredClone(tx);
+    const q = withRefs.questions[0];
+    q.refs = [{ title: 'Tex. Gov\'t Code §406.014', url: 'https://statutes.capitol.texas.gov/Docs/GV/htm/GV.406.htm#406.014' }];
+    await seedStates(db, [withRefs]);
+    await seedStates(db, [withRefs]); // re-seeding replaces refs instead of duplicating them
+    const back = (await loadStates(db)).get('TX').byId.get(q.id);
+    assert.deepEqual(back.refs, q.refs);
+    assert.deepEqual(feedback(back, 0).refs, q.refs);
+  } finally {
+    await db.close();
+  }
 });
 
 test('seeding SQLite and loading back returns the same bank', async () => {
